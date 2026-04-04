@@ -1,6 +1,15 @@
 /* QuantSolve — vanilla JS UI logic */
 
-const API_URL = "http://localhost:3000/solve";
+// When served via http(s), use same-origin for production-like setup.
+// When opened directly as file://, fall back to localhost backend.
+const API_BASE =
+  location.protocol === "http:" || location.protocol === "https:"
+    ? location.origin
+    : "http://localhost:3000";
+
+const API_URL_V1 = `${API_BASE}/solve`;
+const API_URL_V2 = `${API_BASE}/solve/v2`;
+
 const MAX_RESULTS = 100;
 
 /** @type {HTMLInputElement} */
@@ -290,6 +299,35 @@ function renderResultsTable(data) {
   resultsMeta.textContent = `${rows.length}${data.length > MAX_RESULTS ? ` of ${data.length}` : ""} rows`;
 }
 
+async function postSolver(url, payload) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const contentType = res.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+  const body = isJson ? await res.json() : await res.text();
+
+  return { res, body, url };
+}
+
+async function callSolver(payload) {
+  // Prefer v2 (stable JSON envelope). If not present, fall back to legacy v1.
+  const v2 = await postSolver(API_URL_V2, payload);
+  if (v2.res.status === 404) {
+    return postSolver(API_URL_V1, payload);
+  }
+  return v2;
+}
+
+function extractRequestId(res, body) {
+  const headerId = res?.headers?.get?.("x-request-id") || null;
+  const bodyId = body && typeof body === "object" ? body.requestId : null;
+  return headerId || bodyId || null;
+}
+
 async function solve() {
   const equation = normalizeWhitespace(equationInput.value);
 
@@ -323,48 +361,58 @@ async function solve() {
   showStatusLine("Solving...", "muted");
 
   try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    // If backend returns non-JSON, this will throw and be handled below.
-    const contentType = res.headers.get("content-type") || "";
-    const isJson = contentType.includes("application/json");
-    const body = isJson ? await res.json() : await res.text();
+    const { res, body, url } = await callSolver(payload);
+    const requestId = extractRequestId(res, body);
 
     if (!res.ok) {
-      const message = typeof body === "string" ? body : (body?.error ?? "Request failed.");
+      const message =
+        typeof body === "string"
+          ? body
+          : (body?.message ?? body?.error ?? "Request failed.");
       showStatusLine("Solve failed.", "muted");
       addStatusItem("error", message);
+      if (requestId) addStatusItem("warn", `Request ID: ${requestId}`);
       return;
     }
 
     if (Array.isArray(body)) {
       showStatusLine("Solved.", "muted");
       renderResultsTable(body);
+      if (requestId) addStatusItem("warn", `Request ID: ${requestId}`);
+      return;
+    }
+
+    if (body && typeof body === "object" && body.ok === true && Array.isArray(body.data)) {
+      showStatusLine("Solved.", "muted");
+      renderResultsTable(body.data);
+      if (requestId) addStatusItem("warn", `Request ID: ${requestId}`);
       return;
     }
 
     if (typeof body === "string") {
       showStatusLine("Solver message.", "muted");
       addStatusItem("warn", body);
+      if (requestId) addStatusItem("warn", `Request ID: ${requestId}`);
+      return;
+    }
+
+    if (body && typeof body === "object" && body.ok === false && typeof body.message === "string") {
+      showStatusLine("Solver message.", "muted");
+      addStatusItem("warn", body.message);
+      if (requestId) addStatusItem("warn", `Request ID: ${requestId}`);
       return;
     }
 
     showStatusLine("Unexpected response.", "muted");
     addStatusItem("warn", "Response was neither an array nor a string.");
+    if (requestId) addStatusItem("warn", `Request ID: ${requestId}`);
   } catch (err) {
     showStatusLine("Network / CORS error.", "muted");
-    const message =
-      err instanceof Error
-        ? err.message
-        : "Failed to call solver API.";
+    const message = err instanceof Error ? err.message : "Failed to call solver API.";
 
     addStatusItem(
       "error",
-      `Could not reach ${API_URL}. If you're opening index.html directly, your backend must allow CORS (Access-Control-Allow-Origin). Details: ${message}`
+      `Could not reach ${API_BASE}. If you're opening index.html directly, your backend must allow CORS (Access-Control-Allow-Origin). Details: ${message}`
     );
   } finally {
     setLoading(false);
@@ -387,7 +435,6 @@ equationInput.addEventListener("keydown", (e) => {
   }
 });
 
-// Initial render
 renderConstraints();
 clearResults();
 showStatusLine("Ready.", "muted");

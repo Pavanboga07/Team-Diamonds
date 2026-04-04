@@ -3,14 +3,12 @@
 :root {
   --bg: #0f172a;
   --panel: rgba(17, 24, 39, 0.72);
-  --panel-2: rgba(17, 24, 39, 0.9);
   --text: #e5e7eb;
   --muted: #94a3b8;
   --border: rgba(148, 163, 184, 0.18);
   --border-strong: rgba(148, 163, 184, 0.28);
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   --accent: #3b82f6;
-  --accent-2: #60a5fa;
   --danger: #ef4444;
   --warn: #f59e0b;
 
@@ -257,6 +255,12 @@ body {
 
 .tag__remove:hover {
   opacity: 1;
+}
+
+.tag__remove:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  border-radius: 6px;
 }
 
 .status {

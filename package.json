@@ -1,0 +1,17 @@
+{
+  "name": "quantsolve",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "npm run test:engine",
+    "test:engine": "node engine/tokenizer.test.js && node engine/parser.test.js && node engine/normalizer.test.js && node engine/constraints.test.js && node engine/solver.test.js && node engine/engine.test.js",
+    "smoke:api": "node scripts/api-smoke.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
