@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuantSolve — Constraint-Based Equation Solver</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="app-header__inner">
+        <h1 class="app-title">QuantSolve</h1>
+        <p class="app-subtitle">Constraint-Based Equation Solver</p>
+      </div>
+    </header>
+
+    <main class="page">
+      <section class="card" aria-label="QuantSolve Dashboard">
+        <div class="card__section">
+          <label class="field__label" for="equationInput">Enter Equation</label>
+          <div class="row">
+            <input
+              id="equationInput"
+              class="field__input field__input--lg"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="e.g., (10x + 20y) * 2 = 500"
+            />
+            <button id="solveBtn" class="btn btn--primary" type="button">
+              Solve
+            </button>
+          </div>
+          <p class="hint">
+            Tip: add constraints like <span class="hint__code">x &gt;= 5</span>,
+            <span class="hint__code">y &lt;= 3</span>,
+            <span class="hint__code">z % 2 == 0</span>
+          </p>
+        </div>
+
+        <div class="card__divider" role="separator" aria-hidden="true"></div>
+
+        <div class="card__section">
+          <div class="section-title">
+            <h2>Constraints</h2>
+            <span class="section-title__meta" id="constraintsCount">0</span>
+          </div>
+
+          <div class="row">
+            <input
+              id="constraintInput"
+              class="field__input"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="e.g., x >= 5"
+            />
+            <button id="addConstraintBtn" class="btn btn--secondary" type="button">
+              Add
+            </button>
+          </div>
+
+          <div
+            id="constraintsTags"
+            class="tags"
+            aria-label="Constraints list"
+          ></div>
+        </div>
+
+        <div class="card__divider" role="separator" aria-hidden="true"></div>
+
+        <div class="card__section">
+          <div class="status" aria-live="polite" aria-atomic="true">
+            <div id="statusLine" class="status__line status__line--muted">
+              Ready.
+            </div>
+            <ul id="statusList" class="status__list" hidden></ul>
+          </div>
+        </div>
+
+        <div class="card__divider" role="separator" aria-hidden="true"></div>
+
+        <div class="card__section">
+          <div class="section-title">
+            <h2>Results</h2>
+            <span class="section-title__meta" id="resultsMeta">—</span>
+          </div>
+
+          <div id="resultsEmpty" class="empty">
+            Results will appear here after solving.
+          </div>
+
+          <div id="tableWrap" class="table-wrap" hidden>
+            <table class="table" aria-label="Results table">
+              <thead id="resultsThead"></thead>
+              <tbody id="resultsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
