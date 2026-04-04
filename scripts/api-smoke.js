@@ -27,11 +27,14 @@ async function post(body) {
     body: JSON.stringify(body),
   });
 
+  const requestId = res.headers.get("x-request-id");
+  assert.ok(requestId && typeof requestId === "string");
+
   const contentType = res.headers.get("content-type") || "";
   const isJson = contentType.includes("application/json");
   const data = isJson ? await res.json() : await res.text();
 
-  return { status: res.status, data };
+  return { status: res.status, data, requestId };
 }
 
 async function postV2(body) {
@@ -41,11 +44,16 @@ async function postV2(body) {
     body: JSON.stringify(body),
   });
 
+  const requestId = res.headers.get("x-request-id");
+  assert.ok(requestId && typeof requestId === "string");
+
   const contentType = res.headers.get("content-type") || "";
   assert.match(contentType, /application\/json/i);
   const data = await res.json();
 
-  return { status: res.status, data };
+  assert.strictEqual(data.requestId, requestId);
+
+  return { status: res.status, data, requestId };
 }
 
 async function getRoot() {
@@ -65,20 +73,22 @@ async function main() {
   }
 
   {
-    const { status, data } = await post({ equation: "2x+3y=12", constraints: {} });
+    const { status, data, requestId } = await post({ equation: "2x+3y=12", constraints: {} });
     assert.strictEqual(status, 200);
     assert.ok(Array.isArray(data));
     assert.deepStrictEqual(keysOf(data), ["x=0,y=4", "x=3,y=2", "x=6,y=0"]);
+    assert.ok(requestId);
     console.log("✓ basic solve");
   }
 
   {
-    const { status, data } = await postV2({ equation: "2x+3y=12", constraints: {} });
+    const { status, data, requestId } = await postV2({ equation: "2x+3y=12", constraints: {} });
     assert.strictEqual(status, 200);
     assert.strictEqual(data.ok, true);
     assert.ok(Array.isArray(data.data));
     assert.deepStrictEqual(keysOf(data.data), ["x=0,y=4", "x=3,y=2", "x=6,y=0"]);
     assert.strictEqual(data.message, null);
+    assert.ok(requestId);
     console.log("✓ v2 basic solve envelope");
   }
 

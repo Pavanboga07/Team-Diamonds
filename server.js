@@ -17,7 +17,8 @@ function createApp() {
     cors({
       origin: "*",
       methods: ["GET", "POST", "OPTIONS"],
-      allowedHeaders: ["Content-Type"],
+      allowedHeaders: ["Content-Type", "X-Request-Id"],
+      exposedHeaders: ["X-Request-Id"],
     })
   );
 
