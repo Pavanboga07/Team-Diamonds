@@ -43,6 +43,13 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
     "Apple Color Emoji", "Segoe UI Emoji";
   line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input {
+  font: inherit;
 }
 
 .app-header {
@@ -109,6 +116,18 @@ body {
   display: flex;
   gap: var(--s-12);
   align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn {
+    width: 100%;
+  }
 }
 
 .field__input {
@@ -139,6 +158,11 @@ body {
   background: rgba(2, 6, 23, 0.68);
 }
 
+.field__input:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
 .btn {
   height: 40px;
   padding: 0 var(--s-16);
@@ -150,6 +174,16 @@ body {
   transition: transform 90ms ease, filter 140ms ease, background 140ms ease, border-color 140ms ease;
   user-select: none;
   white-space: nowrap;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
+}
+
+.btn--lg {
+  height: 46px;
+  padding: 0 var(--s-20);
 }
 
 .btn:active {
@@ -251,6 +285,14 @@ body {
   font-size: 16px;
   opacity: 0.9;
   transition: opacity 140ms ease;
+}
+
+.tag__remove {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
 }
 
 .tag__remove:hover {
@@ -373,4 +415,11 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
