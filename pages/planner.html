@@ -31,6 +31,14 @@
     .result-rank.gold { background:#FEF3C7; color:#D97706; }
     .alloc-bar { display:flex; height:10px; border-radius:5px; overflow:hidden; margin-top:8px; width:100%; }
     .search-row { display:flex; gap:8px; margin-bottom:10px; }
+    /* constraints table */
+    .con-row { display:grid; grid-template-columns:140px 120px 120px 1fr; align-items:center; gap:8px 12px; padding:8px 0; border-bottom:1px solid #F3F4F6; }
+    .con-row:last-child { border-bottom:none; }
+    .con-input { width:100%; border:1px solid var(--border); border-radius:6px; height:34px; padding:0 10px; font-size:13px; font-family:inherit; outline:none; transition:border-color 120ms; }
+    .con-input:focus { border-color:#1B64F2; }
+    .con-chip { display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:12px;
+                background:#EFF6FF; color:#1B64F2; padding:3px 10px 3px 6px; border-radius:6px; }
+    .con-chip__dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -93,21 +101,54 @@
                   <button class="quick-ticker" data-budget="2500000" type="button">₹25L</button>
                 </div>
               </div>
-              <div style="display:flex;gap:12px;align-items:flex-end">
-                <div style="flex:1">
-                  <label class="form-label" style="margin-bottom:6px;display:block">Max Cash Leftover</label>
-                  <div class="input-with-prefix">
-                    <span class="input-prefix">₹</span>
-                    <input type="number" id="planner-maxLeftover" class="field-input"
-                      min="0" max="100000" step="100" value="500" />
-                  </div>
-                </div>
-                <button id="planner-runBtn" class="btn btn--primary btn--generate" type="button" style="flex:2">
-                  <span style="font-size:16px">▶</span>
-                  <span class="btn__text">Find All Allocations</span>
-                </button>
-              </div>
             </div>
+          </div>
+
+          <!-- STEP 3: Per-stock constraints (rendered dynamically) -->
+          <div class="card" id="planner-constraintsCard" hidden>
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Step 3 — Share Limits
+                  <span style="font-size:11px;color:var(--text-faint);font-weight:400">Optional — leave blank for auto-max</span>
+                </h3>
+                <p style="font-size:12px;color:var(--text-muted);margin-top:4px">
+                  Set <strong>min</strong> (must-have) and <strong>max</strong> (upper limit) shares per stock.
+                  The solver will only return allocations that satisfy all rules.
+                </p>
+              </div>
+              <button id="planner-resetConstraints" class="btn" type="button"
+                style="height:28px;font-size:12px;border:1px solid var(--border);flex-shrink:0">↺ Reset</button>
+            </div>
+            <div style="padding:0 16px">
+              <!-- header row -->
+              <div style="display:grid;grid-template-columns:150px 130px 130px 1fr;gap:8px 12px;padding:8px 0 4px;font-size:10px;color:var(--text-faint);text-transform:uppercase;font-weight:700;letter-spacing:.5px;border-bottom:1px solid var(--border)">
+                <span>Stock</span><span>Min Shares</span><span>Max Shares</span><span></span>
+              </div>
+              <div id="planner-constraintRows"></div>
+            </div>
+            <!-- budget leftover + run -->
+            <div style="padding:14px 16px 16px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:flex-end;margin-top:8px">
+              <div style="flex:1">
+                <label class="form-label" style="margin-bottom:6px;display:block">Max Cash Leftover (₹)</label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix">₹</span>
+                  <input type="number" id="planner-maxLeftover" class="field-input"
+                    min="0" max="100000" step="100" value="500" />
+                </div>
+              </div>
+              <button id="planner-runBtn" class="btn btn--primary btn--generate" type="button" style="flex:2">
+                <span style="font-size:16px">▶</span>
+                <span class="btn__text">Find All Allocations</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Run button shown when constraints card is hidden (no stocks selected yet) -->
+          <div id="planner-runWrap" style="display:none">
+            <button id="planner-runBtnAlt" class="btn btn--primary btn--generate" type="button">
+              <span style="font-size:16px">▶</span>
+              <span class="btn__text">Find All Allocations</span>
+            </button>
           </div>
 
           <!-- Status -->
@@ -146,7 +187,7 @@
               <circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>
             </svg>
             <h3 class="empty-state__title">Select stocks and a budget</h3>
-            <p class="empty-state__desc">Pick 2–6 NSE stocks above, set your budget, then click <strong>Find All Allocations</strong>.</p>
+            <p class="empty-state__desc">Pick 2–6 NSE stocks above, set your budget, optionally add share limits, then click <strong>Find All Allocations</strong>.</p>
           </div>
 
         </div>

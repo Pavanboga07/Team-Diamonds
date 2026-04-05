@@ -40,35 +40,39 @@ const PlannerPage = (() => {
   /* ─── init ──────────────────────────────────────── */
   function init() {
     $ = {
-      grid:          document.getElementById('planner-stockGrid'),
-      search:        document.getElementById('planner-search'),
-      clearSel:      document.getElementById('planner-clearSel'),
-      selCount:      document.getElementById('planner-selectedCount'),
-      selHint:       document.getElementById('planner-selectionHint'),
-      slider:        document.getElementById('planner-slider'),
-      budgetDisplay: document.getElementById('planner-budgetDisplay'),
-      maxLeftover:   document.getElementById('planner-maxLeftover'),
-      runBtn:        document.getElementById('planner-runBtn'),
-      status:        document.getElementById('planner-status'),
-      kpi:           document.getElementById('planner-kpi'),
-      kpiBudget:     document.getElementById('kpi-budget'),
-      kpiInvested:   document.getElementById('kpi-invested'),
-      kpiCash:       document.getElementById('kpi-cash'),
-      kpiCount:      document.getElementById('kpi-count'),
-      allocCard:     document.getElementById('planner-allocCard'),
-      allocBars:     document.getElementById('planner-allocBars'),
-      exportBtn:     document.getElementById('planner-exportBtn'),
-      resultsCard:   document.getElementById('planner-resultsCard'),
-      resultsList:   document.getElementById('planner-resultsList'),
-      resultMeta:    document.getElementById('planner-resultMeta'),
-      empty:         document.getElementById('planner-empty'),
+      grid:              document.getElementById('planner-stockGrid'),
+      search:            document.getElementById('planner-search'),
+      clearSel:          document.getElementById('planner-clearSel'),
+      selCount:          document.getElementById('planner-selectedCount'),
+      selHint:           document.getElementById('planner-selectionHint'),
+      slider:            document.getElementById('planner-slider'),
+      budgetDisplay:     document.getElementById('planner-budgetDisplay'),
+      maxLeftover:       document.getElementById('planner-maxLeftover'),
+      runBtn:            document.getElementById('planner-runBtn'),
+      status:            document.getElementById('planner-status'),
+      kpi:               document.getElementById('planner-kpi'),
+      kpiBudget:         document.getElementById('kpi-budget'),
+      kpiInvested:       document.getElementById('kpi-invested'),
+      kpiCash:           document.getElementById('kpi-cash'),
+      kpiCount:          document.getElementById('kpi-count'),
+      allocCard:         document.getElementById('planner-allocCard'),
+      allocBars:         document.getElementById('planner-allocBars'),
+      exportBtn:         document.getElementById('planner-exportBtn'),
+      resultsCard:       document.getElementById('planner-resultsCard'),
+      resultsList:       document.getElementById('planner-resultsList'),
+      resultMeta:        document.getElementById('planner-resultMeta'),
+      empty:             document.getElementById('planner-empty'),
+      constraintsCard:   document.getElementById('planner-constraintsCard'),
+      constraintRows:    document.getElementById('planner-constraintRows'),
+      resetConstraints:  document.getElementById('planner-resetConstraints'),
     };
 
     $.search.addEventListener('input', () => filterGrid($.search.value));
-    $.clearSel.addEventListener('click', () => { selected.clear(); updateSelectionUI(); renderGrid(); });
+    $.clearSel.addEventListener('click', () => { selected.clear(); updateSelectionUI(); renderGrid(); renderConstraintRows(); });
     $.slider.addEventListener('input', onSliderChange);
     $.runBtn.addEventListener('click', run);
     $.exportBtn?.addEventListener('click', exportCSV);
+    $.resetConstraints?.addEventListener('click', resetConstraints);
 
     document.querySelectorAll('[data-budget]').forEach(btn =>
       btn.addEventListener('click', () => { $.slider.value = btn.dataset.budget; onSliderChange(); })
@@ -88,6 +92,7 @@ const PlannerPage = (() => {
 
     onSliderChange();
     renderGrid();
+    renderConstraintRows();
     fetchLivePrices();
   }
 
@@ -152,6 +157,79 @@ const PlannerPage = (() => {
     $.selCount.textContent = `${n} selected`;
     $.selHint.textContent  = n < 2 ? (n === 0 ? '' : 'Select at least 2 stocks.') : n > 6 ? 'Max 6.' : '';
     $.selCount.style.color = n >= 2 && n <= 6 ? '#16A34A' : n > 6 ? '#DC2626' : '#6B7280';
+    renderConstraintRows();
+  }
+
+  /* ─── constraints panel ──────────────────────────── */
+  function renderConstraintRows() {
+    if (!$.constraintsCard || !$.constraintRows) return;
+    const tickers = [...selected];
+    const show    = tickers.length >= 2;
+    $.constraintsCard.hidden = !show;
+
+    // Preserve existing values before re-render
+    const prev = {};
+    $.constraintRows.querySelectorAll('.con-row').forEach(row => {
+      const sym = row.dataset.sym;
+      if (sym) {
+        prev[sym] = {
+          min: row.querySelector('[data-min]')?.value || '',
+          max: row.querySelector('[data-max]')?.value || '',
+        };
+      }
+    });
+
+    $.constraintRows.innerHTML = '';
+    tickers.forEach((sym, i) => {
+      const color = COLORS[i % COLORS.length];
+      const live  = liveData[sym];
+      const fb    = STOCKS.find(s => s.sym === sym);
+      const price = live?.price ?? fb?.price ?? 1000;
+      const autoMax = Math.floor(Number($.slider.value) / Math.round(price));
+
+      const row = document.createElement('div');
+      row.className  = 'con-row';
+      row.dataset.sym = sym;
+      row.innerHTML = `
+        <div class="con-chip">
+          <span class="con-chip__dot" style="background:${color}"></span>
+          ${sym}
+        </div>
+        <div>
+          <input type="number" class="con-input" data-min min="0" max="9999" step="1"
+            placeholder="0 (auto)"
+            value="${prev[sym]?.min || ''}" aria-label="Min shares for ${sym}" />
+        </div>
+        <div>
+          <input type="number" class="con-input" data-max min="0" max="9999" step="1"
+            placeholder="${autoMax} (auto-max)"
+            value="${prev[sym]?.max || ''}" aria-label="Max shares for ${sym}" />
+        </div>
+        <div style="font-size:11px;color:var(--text-faint)">
+          ₹${Math.round(price).toLocaleString('en-IN')}/share · max affordable: ${autoMax}
+        </div>`;
+      $.constraintRows.appendChild(row);
+    });
+  }
+
+  function resetConstraints() {
+    $.constraintRows.querySelectorAll('.con-input').forEach(inp => inp.value = '');
+  }
+
+  /* Reads constraints from form inputs */
+  function readConstraints(tickers, prices, budget, maxLeftover) {
+    const constraints = {};
+    tickers.forEach((sym, i) => {
+      const row   = $.constraintRows.querySelector(`.con-row[data-sym="${sym}"]`);
+      const minEl = row?.querySelector('[data-min]');
+      const maxEl = row?.querySelector('[data-max]');
+      const autoMax = Math.floor(budget / Math.round(prices[sym]));
+      const minVal  = minEl?.value !== '' ? Math.max(0, parseInt(minEl.value, 10)) : 0;
+      const maxVal  = maxEl?.value !== '' ? Math.min(autoMax, parseInt(maxEl.value, 10)) : autoMax;
+      constraints[VARS[i]] = { min: minVal, max: Math.max(minVal, maxVal) };
+    });
+    constraints['r'] = { min: 0, max: maxLeftover };
+    return constraints;
   }
 
   /* ─── fetch live prices ──────────────────────────── */
@@ -186,15 +264,19 @@ const PlannerPage = (() => {
     });
 
     // Build equation: sum(price_i * var_i) + r = budget
-    // 'r' = remainder/cash leftover — always a single letter, never conflicts with a-f
+    // 'r' = remainder/cash leftover — always single letter, never conflicts with a-f
     const priceFactors = tickers.map((sym, i) => `${Math.round(prices[sym])}${VARS[i]}`).join(' + ');
     const equation     = `${priceFactors} + r = ${budget}`;
 
-    const constraints = {};
-    tickers.forEach((sym, i) => {
-      constraints[VARS[i]] = { min: 0, max: Math.floor(budget / Math.round(prices[sym])) };
+    // Read per-stock constraints from the UI (min/max share inputs)
+    const constraints = readConstraints(tickers, prices, budget, maxLeftover);
+
+    // Show constraint summary in status
+    const hasCustom = tickers.some((sym, i) => {
+      const c = constraints[VARS[i]];
+      return c.min > 0 || c.max < Math.floor(budget / Math.round(prices[sym]));
     });
-    constraints['r'] = { min: 0, max: maxLeftover };
+    if (hasCustom) setStatus('loading', '⟳ Solving with your custom share limits…');
 
     setStatus('loading', '⟳ Solving… this may take a moment');
     $.runBtn.disabled = true;
