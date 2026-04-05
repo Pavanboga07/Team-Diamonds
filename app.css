@@ -463,3 +463,22 @@ body { background: #F1F5F9; }
 .slv-con-remove:hover { color: #DC2626; background: #FEF2F2; }
 
 .topbar__brand { font-size:14px; font-weight:700; color:#1B64F2; }
+
+/* -- Solver tabs -------------------------------------- */
+.slv-tab {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 100ms;
+}
+.slv-tab:hover { background: #F9FAFB; color: var(--text-primary); }
+.slv-tab--active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}

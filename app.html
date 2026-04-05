@@ -148,18 +148,42 @@
 
           <!-- Results -->
           <div id="slv-results" hidden>
-            <div class="card">
-              <div class="card__header">
-                <h3 class="card__title">Solutions</h3>
-                <span id="slv-meta" style="font-size:12px;color:var(--text-faint)"></span>
-              </div>
-              <div class="table-wrap">
-                <table id="slv-table" style="width:100%;border-collapse:collapse">
-                  <thead></thead>
-                  <tbody></tbody>
-                </table>
+
+            <!-- View toggle -->
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <button id="slv-tabTable" class="slv-tab slv-tab--active" type="button">📋 Table</button>
+              <button id="slv-tabChart" class="slv-tab" type="button">📊 Chart</button>
+            </div>
+
+            <!-- Table view -->
+            <div id="slv-viewTable">
+              <div class="card">
+                <div class="card__header">
+                  <h3 class="card__title">Solutions</h3>
+                  <span id="slv-meta" style="font-size:12px;color:var(--text-faint)"></span>
+                </div>
+                <div class="table-wrap" style="max-height:400px;overflow-y:auto">
+                  <table id="slv-table" style="width:100%;border-collapse:collapse">
+                    <thead></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
               </div>
             </div>
+
+            <!-- Chart view -->
+            <div id="slv-viewChart" hidden>
+              <div class="card">
+                <div class="card__header">
+                  <h3 class="card__title" id="slv-chartTitle">Solution Space</h3>
+                  <span id="slv-chartDesc" style="font-size:11px;color:var(--text-faint)"></span>
+                </div>
+                <div style="padding:16px">
+                  <canvas id="slv-canvas" style="width:100%;border-radius:4px;display:block"></canvas>
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>
