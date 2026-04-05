@@ -23,3 +23,7 @@ Thumbs.db
 
 # Misc
 *.local
+
+# Rust / WASM build artifacts (regenerate with: wasm-pack build --target nodejs --out-dir ../wasm)
+engine/wasm/
+engine/rust/target/
