@@ -85,6 +85,16 @@ function fetchYF(symbols, timeout = 6000) {
   });
 }
 
+function isMarketOpen() {
+  // NSE: Mon-Fri, 09:15-15:30 IST (UTC+5:30)
+  const now = new Date();
+  const ist = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+  const day = ist.getDay(); // 0=Sun, 6=Sat
+  const h = ist.getHours(), m = ist.getMinutes();
+  const mins = h * 60 + m;
+  return day >= 1 && day <= 5 && mins >= 555 && mins <= 930; // 9:15=555, 15:30=930
+}
+
 function createIndiaMarketRouter() {
   const router = express.Router();
 
@@ -94,6 +104,7 @@ function createIndiaMarketRouter() {
     const allStocks  = [...NSE_STOCKS, ...NSE_INDICES];
     const yfSymbols  = allStocks.map(s => s.yf);
     let   source = 'static';
+    const marketOpen = isMarketOpen();
 
     const stockMap = {};
     allStocks.forEach(s => {
@@ -124,7 +135,7 @@ function createIndiaMarketRouter() {
         });
       }
     } catch (e) {
-      console.warn('[india-market] Live fetch failed, using static:', e.message);
+      console.warn('[india-market] Yahoo fetch failed, using static fallback:', e.message);
     }
 
     const stocks  = NSE_STOCKS.map(s  => stockMap[s.symbol]);
@@ -142,7 +153,7 @@ function createIndiaMarketRouter() {
       name, avgChange: +(d.totalChg / d.count).toFixed(2),
     })).sort((a, b) => b.avgChange - a.avgChange);
 
-    cache = { ok: true, source, updatedAt: Date.now(), stocks, indices, gainers, losers, sectors };
+    cache = { ok: true, source, marketOpen, updatedAt: Date.now(), stocks, indices, gainers, losers, sectors };
     cacheAt = Date.now();
     res.json(cache);
   });

@@ -29,6 +29,12 @@
     </div>
 
     <div class="sidebar__nav">
+      <div class="nav-section-label">Tools</div>
+      <a href="#solver" class="nav-item" data-page="solver" role="button">
+        <span class="nav-item__icon">Σ</span>
+        <span class="nav-item__label">Equation Solver</span>
+      </a>
+
       <div class="nav-section-label">Market</div>
       <a href="#market" class="nav-item" data-page="market" role="button">
         <span class="nav-item__icon">📈</span>
@@ -97,7 +103,79 @@
     <!-- ═══ Page panels ═══ -->
     <div class="page-panels">
 
-      <!-- ─── MARKET PANEL ─────────────────────────────────── -->
+      <!-- ─── SOLVER PANEL ──────────────────────────────────── -->
+      <div id="panel-solver" class="page-panel hidden">
+        <div class="panel-content">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Equation Solver</h2>
+              <p class="panel-desc">Solve any linear Diophantine equation with integer constraints — the engine this product is built on.</p>
+            </div>
+          </div>
+
+          <!-- Input card -->
+          <div class="card">
+            <div class="card__header">
+              <h3 class="card__title">Enter Equation</h3>
+              <span style="font-size:11px;color:var(--text-faint)">Ctrl+Enter to solve</span>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div>
+                <label class="form-label" style="margin-bottom:6px;display:block">Linear equation <span class="form-label__hint">e.g. 3a + 5b + 2c = 60</span></label>
+                <input id="slv-equation" type="text" class="field-input"
+                  placeholder="2a + 3b = 12"
+                  style="font-family:ui-monospace,monospace;font-size:15px;letter-spacing:0.5px;border:1px solid var(--border-strong);border-radius:6px;height:44px;padding:0 14px"
+                  spellcheck="false" autocomplete="off" />
+              </div>
+
+              <!-- Constraints -->
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <label class="form-label" style="margin:0">Constraints <span class="form-label__hint">optional</span></label>
+                  <button id="slv-addConstraint" class="btn" type="button"
+                    style="height:28px;font-size:12px;border:1px solid var(--border);padding:0 10px">+ Add</button>
+                </div>
+                <div id="slv-constraintList" style="display:flex;flex-direction:column;gap:6px"></div>
+              </div>
+
+              <!-- Examples -->
+              <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px">
+                <span style="font-size:12px;color:var(--text-faint);align-self:center">Examples:</span>
+                <button data-example="simple" class="quick-ticker" type="button">2a + 3b = 12</button>
+                <button data-example="three" class="quick-ticker" type="button">3a + 5b + 7c = 30</button>
+                <button data-example="portfolio" class="quick-ticker" type="button">Portfolio budget</button>
+              </div>
+
+              <button id="slv-solveBtn" class="btn btn--primary btn--generate" type="button">
+                <span style="font-size:16px">▶</span>
+                <span class="btn__text">Solve</span>
+              </button>
+
+              <div id="slv-status" style="font-size:13px;min-height:18px"></div>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="slv-results" hidden>
+            <div class="card">
+              <div class="card__header">
+                <h3 class="card__title">Solutions</h3>
+                <span id="slv-meta" style="font-size:12px;color:var(--text-faint)"></span>
+              </div>
+              <div class="table-wrap">
+                <table id="slv-table" style="width:100%;border-collapse:collapse">
+                  <thead></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- / SOLVER PANEL -->
+
+      <!-- ─── MARKET PANEL ────────────────────────────────────── -->
       <div id="panel-market" class="page-panel hidden">
 
         <!-- Scrolling ticker strip -->
@@ -118,6 +196,11 @@
               <small id="mkt-updated" style="color:var(--text-faint);font-size:11px"></small>
               <button class="btn" id="mkt-refreshBtn" style="height:32px;font-size:12px;border:1px solid var(--border)">↻ Refresh</button>
             </div>
+          </div>
+
+          <!-- Market closed banner -->
+          <div id="mkt-closed-banner" style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:13px;color:#92400E;display:flex;align-items:center;gap:8px" hidden>
+            🕐 <strong>NSE is currently closed.</strong> Prices shown are from the last trading session (Mon–Fri 9:15am–3:30pm IST).
           </div>
 
           <!-- Index cards -->
@@ -599,6 +682,7 @@ const { ok, data } = await res.json();
 <script src="lib/format.js"></script>
 <script src="lib/market-client.js"></script>
 <script src="lib/ticker-list.js"></script>
+<script src="pages/solver.js"></script>
 <script src="pages/optimizer.js"></script>
 <script src="pages/watchlist.js"></script>
 <script src="pages/history.js"></script>

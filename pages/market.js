@@ -25,7 +25,7 @@ const MarketPage = (() => {
   /* ── fetch ──────────────────────────────────────────── */
   async function load() {
     try {
-      const resp = await AuthClient.apiFetch('/market/india');
+      const resp = await fetch('/market/india').then(r => r.json());
       if (!resp.ok) return;
       const prev = data;
       data = resp;
@@ -33,9 +33,15 @@ const MarketPage = (() => {
       document.getElementById('mkt-updated').textContent = `Updated ${Format.timeago(resp.updatedAt)}`;
       const badge = document.getElementById('mkt-sourceBadge');
       if (badge) {
-        badge.className = `badge badge--live${resp.source === 'live' ? '' : ' badge--static'}`;
-        badge.innerHTML = `<span class="badge__dot"></span>${resp.source === 'live' ? 'Live NSE' : 'Demo Prices'}`;
+        const isLive   = resp.source === 'live';
+        const isClosed = resp.source === 'closed';
+        badge.className = `badge badge--live${isLive ? '' : ' badge--static'}`;
+        badge.innerHTML = `<span class="badge__dot"></span>${
+          isLive ? 'NSE Live' : isClosed ? 'Market Closed' : 'Last Close'}`;
       }
+      // market closed banner
+      const banner = document.getElementById('mkt-closed-banner');
+      if (banner) banner.hidden = resp.marketOpen !== false;
     } catch { /* silently */ }
   }
 
