@@ -185,15 +185,16 @@ const PlannerPage = (() => {
       prices[sym] = live?.price ?? fb?.price ?? 1000;
     });
 
-    // Build equation: sum(price_i * var_i) + k = budget, k is leftover cents
+    // Build equation: sum(price_i * var_i) + r = budget
+    // 'r' = remainder/cash leftover — always a single letter, never conflicts with a-f
     const priceFactors = tickers.map((sym, i) => `${Math.round(prices[sym])}${VARS[i]}`).join(' + ');
-    const equation     = `${priceFactors} + ${VARS[tickers.length]}k = ${budget}`;
+    const equation     = `${priceFactors} + r = ${budget}`;
 
     const constraints = {};
     tickers.forEach((sym, i) => {
       constraints[VARS[i]] = { min: 0, max: Math.floor(budget / Math.round(prices[sym])) };
     });
-    constraints['k'] = { min: 0, max: maxLeftover };
+    constraints['r'] = { min: 0, max: maxLeftover };
 
     setStatus('loading', '⟳ Solving… this may take a moment');
     $.runBtn.disabled = true;
@@ -217,16 +218,16 @@ const PlannerPage = (() => {
       }
 
       // Sort by cash leftover ascending (most invested first)
-      results.sort((a, b) => (a['k'] ?? 0) - (b['k'] ?? 0));
+      results.sort((a, b) => (a['r'] ?? 0) - (b['r'] ?? 0));
       const best = results[0];
-      const bestInvested = budget - (best['k'] ?? 0);
+      const bestInvested = budget - (best['r'] ?? 0);
       const bestPct      = ((bestInvested / budget) * 100).toFixed(1);
 
       // KPIs
       $.kpi.hidden = false;
       $.kpiBudget.textContent   = fmtInr(budget);
       $.kpiInvested.textContent = fmtInr(bestInvested);
-      $.kpiCash.textContent     = fmtInr(best['k'] ?? 0);
+      $.kpiCash.textContent     = fmtInr(best['r'] ?? 0);
       $.kpiCount.textContent    = results.length;
 
       // Allocation bars for best result
@@ -254,7 +255,7 @@ const PlannerPage = (() => {
     $.allocCard.hidden = false;
     $.allocBars.innerHTML = '';
 
-    const cashLeft = best['k'] ?? 0;
+    const cashLeft = best['r'] ?? 0;
     const invested = budget - cashLeft;
 
     tickers.forEach((sym, i) => {
@@ -311,7 +312,7 @@ const PlannerPage = (() => {
     $.resultsList.innerHTML = '';
 
     shown.forEach((row, i) => {
-      const cashLeft = row['k'] ?? 0;
+      const cashLeft = row['r'] ?? 0;
       const invested = budget - cashLeft;
       const pct      = ((invested / budget) * 100).toFixed(1);
 
