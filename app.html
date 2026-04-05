@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuantSolve — Portfolio Optimizer</title>
+  <meta name="description" content="Professional stock portfolio optimizer using integer-linear programming." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ═══ Sidebar ═══ -->
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar__brand">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="6" fill="#1B64F2"/>
+        <path d="M7 22L12 15L16 18L22 10" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="22" cy="10" r="2.5" fill="#4ADE80"/>
+      </svg>
+      <div>
+        <div class="sidebar__brand-name">QuantSolve</div>
+        <div class="sidebar__brand-tag">PORTFOLIO ENGINE</div>
+      </div>
+    </div>
+
+    <div class="sidebar__nav">
+      <div class="nav-section-label">Portfolio</div>
+      <a href="#optimizer" class="nav-item active" data-page="optimizer" role="button">
+        <span class="nav-item__icon">📊</span>
+        <span class="nav-item__label">Optimizer</span>
+      </a>
+      <a href="#watchlist" class="nav-item" data-page="watchlist" role="button">
+        <span class="nav-item__icon">👁</span>
+        <span class="nav-item__label">Watchlist</span>
+      </a>
+
+      <div class="nav-section-label">Analysis</div>
+      <a href="#history" class="nav-item" data-page="history" role="button">
+        <span class="nav-item__icon">📋</span>
+        <span class="nav-item__label">History</span>
+      </a>
+      <a href="#compare" class="nav-item" data-page="compare" role="button">
+        <span class="nav-item__icon">⚖</span>
+        <span class="nav-item__label">Compare</span>
+      </a>
+
+      <div class="nav-section-label">Developer</div>
+      <a href="#api-docs" class="nav-item" data-page="api-docs" role="button">
+        <span class="nav-item__icon">🔌</span>
+        <span class="nav-item__label">API Docs</span>
+      </a>
+    </div>
+
+    <div class="sidebar__footer">
+      <div style="margin-bottom:6px">
+        <span class="usage-pill">🏃 <span id="usageCount">0</span> runs</span>
+      </div>
+      <a href="/landing.html">← Back to Home</a>
+    </div>
+  </nav>
+
+  <!-- ═══ Main ═══ -->
+  <div class="app-main">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="/landing.html" class="topbar__home">QuantSolve</a>
+        <span class="topbar__sep">/</span>
+        <span class="topbar__breadcrumb" id="topbarBreadcrumb">Portfolio</span>
+      </div>
+      <div class="topbar__right">
+        <span class="badge badge--live" id="liveBadge">
+          <span class="badge__dot"></span>Live Data
+        </span>
+        <span class="badge badge--engine">Integer-Linear Solver</span>
+      </div>
+    </header>
+
+    <!-- ═══ Page panels ═══ -->
+    <div class="page-panels">
+
+      <!-- ─── OPTIMIZER PANEL ─────────────────────────────── -->
+      <div id="panel-optimizer" class="page-panel">
+        <div class="panel-content">
+
+          <!-- Input card -->
+          <div class="card card--input">
+            <div class="card__header card__header--row">
+              <div>
+                <h2 class="card__title" style="font-size:15px">Build Your Portfolio</h2>
+                <p class="card__desc">Select stocks, set your budget — the solver finds all feasible whole-share allocations.</p>
+              </div>
+            </div>
+            <div class="form-body">
+              <!-- Tickers -->
+              <div class="form-group">
+                <label class="form-label">
+                  Stock Tickers <span class="form-label__hint">2–6 tickers</span>
+                </label>
+                <div class="ticker-field" id="tickerField" role="group" aria-label="Stock tickers input">
+                  <span id="tickerTags" aria-live="polite"></span>
+                  <input type="text" id="tickerInput" class="ticker-input"
+                    placeholder="Type ticker + Enter (e.g., AAPL)"
+                    autocomplete="off" autocapitalize="characters" spellcheck="false"
+                    aria-label="Add stock ticker" maxlength="12" />
+                </div>
+                <div class="popular-tickers">
+                  <span class="popular-label">Popular:</span>
+                  <button class="quick-ticker" data-ticker="AAPL" type="button">AAPL</button>
+                  <button class="quick-ticker" data-ticker="MSFT" type="button">MSFT</button>
+                  <button class="quick-ticker" data-ticker="NVDA" type="button">NVDA</button>
+                  <button class="quick-ticker" data-ticker="GOOGL" type="button">GOOGL</button>
+                  <button class="quick-ticker" data-ticker="AMZN" type="button">AMZN</button>
+                  <button class="quick-ticker" data-ticker="TSLA" type="button">TSLA</button>
+                </div>
+              </div>
+
+              <!-- Budget + Leftover -->
+              <div class="form-row">
+                <div class="form-group form-group--flex">
+                  <label class="form-label" for="budgetInput">Budget (USD)</label>
+                  <div class="input-with-prefix">
+                    <span class="input-prefix">$</span>
+                    <input type="number" id="budgetInput" class="field-input"
+                      min="1" max="999999" step="1" value="5000"
+                      autocomplete="off" aria-label="Budget in US dollars" />
+                  </div>
+                </div>
+                <div class="form-group form-group--flex">
+                  <label class="form-label" for="maxLeftoverInput">Max Cash Leftover</label>
+                  <div class="input-with-prefix">
+                    <span class="input-prefix">$</span>
+                    <input type="number" id="maxLeftoverInput" class="field-input"
+                      min="0" max="50000" step="1" value="50"
+                      autocomplete="off" aria-label="Maximum leftover cash in USD" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Generate button -->
+              <button class="btn btn--primary btn--generate" id="generateBtn" type="button">
+                <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                <span class="btn__text">Generate Portfolios</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI strip -->
+          <div class="kpi-strip" id="kpiStrip" hidden>
+            <div class="kpi-card kpi-card--blue">
+              <div class="kpi-label">Total Budget</div>
+              <div class="kpi-value" id="kpiBudget">—</div>
+            </div>
+            <div class="kpi-card kpi-card--green">
+              <div class="kpi-label">Best Invested</div>
+              <div class="kpi-value" id="kpiInvested">—</div>
+            </div>
+            <div class="kpi-card kpi-card--gray">
+              <div class="kpi-label">Min Cash Left</div>
+              <div class="kpi-value" id="kpiCash">—</div>
+            </div>
+            <div class="kpi-card kpi-card--purple">
+              <div class="kpi-label">Portfolios Found</div>
+              <div class="kpi-value" id="kpiCount">—</div>
+            </div>
+          </div>
+
+          <!-- Status bar -->
+          <div class="status-bar" role="status" aria-live="polite">
+            <div class="status-bar__main">
+              <span class="status-dot status-dot--idle" id="statusDot" aria-hidden="true"></span>
+              <span class="status-text" id="statusText">Select tickers and a budget to generate portfolios.</span>
+            </div>
+            <div class="status-bar__meta" id="statusMeta" hidden>
+              <span class="status-requestid" id="statusRequestId"></span>
+            </div>
+          </div>
+
+          <!-- Results card -->
+          <div class="card card--results" id="resultsCard" hidden>
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Portfolio Candidates</h3>
+                <p class="card__desc" id="tableMetaText" style="margin-top:2px"></p>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn" id="exportCsvBtn" type="button"
+                  style="height:32px;font-size:12px;border:1px solid var(--border);padding:0 12px">
+                  ↓ Export CSV
+                </button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="portfolio-table" aria-label="Portfolio candidates">
+                <thead id="portfolioThead"></thead>
+                <tbody id="portfolioTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Solver math accordion -->
+          <details class="solver-math" id="solverMath">
+            <summary class="solver-math__toggle">
+              <span class="solver-math__icon">Σ</span>
+              <span class="solver-math__label">Solver Equation <span class="solver-math__sub">(for judges &amp; transparency)</span></span>
+              <span class="solver-math__chevron">›</span>
+            </summary>
+            <div class="solver-math__body">
+              <div class="code-section__label">Equation sent to /solve/v2</div>
+              <pre class="code-block" id="equationDisplay">—</pre>
+              <div class="code-section__label">Constraints</div>
+              <pre class="code-block" id="constraintsDisplay">—</pre>
+              <div class="code-section__label">Variable mapping &amp; prices</div>
+              <pre class="code-block" id="pricesDisplay">—</pre>
+            </div>
+          </details>
+
+          <!-- Empty state -->
+          <div class="empty-state" id="emptyState">
+            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 10h8M8 14h5"/>
+            </svg>
+            <h3 class="empty-state__title">No portfolios yet</h3>
+            <p class="empty-state__desc">Enter 2–6 stock tickers and a budget above, then click <strong>Generate Portfolios</strong>.</p>
+          </div>
+
+        </div>
+      </div>
+      <!-- / OPTIMIZER PANEL -->
+
+      <!-- ─── WATCHLIST PANEL ────────────────────────────── -->
+      <div id="panel-watchlist" class="page-panel hidden">
+        <div class="panel-content">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Watchlist</h2>
+              <p class="panel-desc">Track your favourite stocks with live prices. One click to drop them into the optimizer.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <small id="wl-lastUpdated" style="color:var(--text-faint);font-size:11px"></small>
+              <button class="btn btn--primary" id="wl-optimizeBtn" type="button"
+                style="height:34px;font-size:12px">→ Optimize Selected</button>
+              <button class="btn" id="wl-refreshBtn" type="button"
+                style="height:34px;font-size:12px;border:1px solid var(--border)">↻ Refresh</button>
+            </div>
+          </div>
+
+          <!-- Add ticker -->
+          <div class="card">
+            <div class="card__header"><h3 class="card__title">Add Ticker</h3></div>
+            <div style="padding:14px;display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" id="wl-input" placeholder="e.g. AAPL, AMD, TSLA"
+                class="field-input" style="flex:1;min-width:160px;border:1px solid var(--border-strong);border-radius:var(--radius-md);height:38px"
+                autocapitalize="characters" spellcheck="false" />
+              <button class="btn btn--primary" id="wl-addBtn" type="button" style="height:38px">Add</button>
+            </div>
+            <div style="padding:0 14px 14px">
+              <div class="popular-tickers">
+                <span class="popular-label">Quick add:</span>
+                <button class="quick-ticker" data-wl-ticker="AAPL" type="button">AAPL</button>
+                <button class="quick-ticker" data-wl-ticker="MSFT" type="button">MSFT</button>
+                <button class="quick-ticker" data-wl-ticker="NVDA" type="button">NVDA</button>
+                <button class="quick-ticker" data-wl-ticker="GOOGL" type="button">GOOGL</button>
+                <button class="quick-ticker" data-wl-ticker="AMZN" type="button">AMZN</button>
+                <button class="quick-ticker" data-wl-ticker="AMD" type="button">AMD</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Watchlist table -->
+          <div class="card">
+            <div class="table-wrap">
+              <table class="portfolio-table" id="wl-table">
+                <thead>
+                  <tr>
+                    <th class="col--number"><input type="checkbox" id="wl-selectAll" aria-label="Select all"></th>
+                    <th>Ticker</th>
+                    <th style="text-align:right">Price</th>
+                    <th>Last Updated</th>
+                    <th style="text-align:right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="wl-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="wl-empty" style="padding:32px">
+              <p class="empty-state__desc">No tickers in your watchlist. Add some above.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- / WATCHLIST PANEL -->
+
+      <!-- ─── HISTORY PANEL ──────────────────────────────── -->
+      <div id="panel-history" class="page-panel hidden">
+        <div class="panel-content">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Run History</h2>
+              <p class="panel-desc">Every portfolio generation is saved locally. Re-run or compare past results.</p>
+            </div>
+            <button class="btn" id="hist-clearBtn" type="button"
+              style="height:34px;font-size:12px;border:1px solid var(--loss-border);color:var(--loss)">
+              Clear All
+            </button>
+          </div>
+          <div id="hist-list"></div>
+          <div class="empty-state" id="hist-empty">
+            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <h3 class="empty-state__title">No history yet</h3>
+            <p class="empty-state__desc">Run the optimizer — every result is saved here automatically.</p>
+          </div>
+        </div>
+      </div>
+      <!-- / HISTORY PANEL -->
+
+      <!-- ─── COMPARE PANEL ──────────────────────────────── -->
+      <div id="panel-compare" class="page-panel hidden">
+        <div class="panel-content">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Compare Portfolios</h2>
+              <p class="panel-desc">Select two runs from your history and compare them side-by-side.</p>
+            </div>
+            <button class="btn btn--primary" id="cmp-compareBtn" type="button" style="height:34px;font-size:12px">
+              ⊕ Compare Selected
+            </button>
+          </div>
+
+          <div class="cmp-pickers">
+            <div class="card">
+              <div class="card__header" style="background:var(--primary-light)">
+                <h3 class="card__title" style="color:var(--primary)">Run A</h3>
+              </div>
+              <div id="cmp-picker-a"></div>
+            </div>
+            <div class="card">
+              <div class="card__header" style="background:var(--gain-bg)">
+                <h3 class="card__title" style="color:var(--gain)">Run B</h3>
+              </div>
+              <div id="cmp-picker-b"></div>
+            </div>
+          </div>
+
+          <div class="card" id="cmp-result" hidden>
+            <div class="card__header">
+              <h3 class="card__title">Comparison Results</h3>
+            </div>
+            <div class="table-wrap" id="cmp-table-wrap"></div>
+          </div>
+        </div>
+      </div>
+      <!-- / COMPARE PANEL -->
+
+      <!-- ─── API DOCS PANEL ─────────────────────────────── -->
+      <div id="panel-api-docs" class="page-panel hidden">
+        <div class="panel-content">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">API Documentation</h2>
+              <p class="panel-desc">REST API for the QuantSolve Portfolio Engine. Base URL: <code style="font-size:12px;background:#F3F4F6;padding:1px 6px;border-radius:3px">http://localhost:3000</code></p>
+            </div>
+          </div>
+
+          <!-- GET /market/quotes -->
+          <div class="card api-endpoint">
+            <div class="card__header">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="api-method api-method--get">GET</span>
+                <span class="api-path">/market/quotes</span>
+              </div>
+            </div>
+            <div style="padding:16px">
+              <p class="api-desc">Fetch live (or demo) stock prices for one or more symbols.</p>
+
+              <div class="code-section__label">Parameters</div>
+              <table class="params-table">
+                <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>symbols</code></td><td><code>string</code></td><td>Comma-separated ticker symbols (e.g. <code>AAPL,MSFT,NVDA</code>). Max 6.</td></tr>
+                </tbody>
+              </table>
+
+              <div class="code-section__label">Example response</div>
+              <div class="code-wrap">
+                <button class="copy-btn" type="button">Copy</button>
+                <pre class="code-block">{
+  "ok": true,
+  "source": "static",
+  "data": {
+    "AAPL": { "symbol": "AAPL", "price": 196.89, "name": "Apple Inc." },
+    "MSFT": { "symbol": "MSFT", "price": 421.55, "name": "Microsoft Corporation" }
+  }
+}</pre>
+              </div>
+
+              <div class="code-section__label" style="padding-top:12px">Try it</div>
+              <div class="try-it-box">
+                <label for="try-symbols">Symbols (comma-separated)</label>
+                <input type="text" id="try-symbols" value="AAPL,MSFT,NVDA" />
+                <button class="btn btn--primary" style="height:34px;font-size:13px" type="button"
+                  data-endpoint="quotes" class="api-try-btn">▶ Send Request</button>
+                <div class="try-it-result"><pre id="try-result-quotes">—</pre></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- POST /solve/v2 -->
+          <div class="card api-endpoint">
+            <div class="card__header">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="api-method api-method--post">POST</span>
+                <span class="api-path">/solve/v2</span>
+              </div>
+            </div>
+            <div style="padding:16px">
+              <p class="api-desc">Run the integer-linear solver on a budget equation with per-variable constraints.</p>
+
+              <div class="code-section__label">Request body</div>
+              <table class="params-table">
+                <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>equation</code></td><td><code>string</code></td><td>Linear equation using single-letter variable names. E.g. <code>19689a + 42155b + 1k = 500000</code></td></tr>
+                  <tr><td><code>constraints</code></td><td><code>object</code></td><td>Per-variable bounds. E.g. <code>{"a":{"max":25},"k":{"max":5000}}</code></td></tr>
+                </tbody>
+              </table>
+
+              <div class="code-section__label">Code examples</div>
+              <div style="display:flex;gap:8px;margin-bottom:8px;font-size:12px">
+                <strong>curl</strong>
+              </div>
+              <div class="code-wrap">
+                <button class="copy-btn" type="button">Copy</button>
+                <pre class="code-block">curl -X POST http://localhost:3000/solve/v2 \
+  -H "Content-Type: application/json" \
+  -d '{"equation":"19689a + 42155b + 1k = 500000","constraints":{"a":{"max":25},"b":{"max":11},"k":{"max":5000}}}'</pre>
+              </div>
+
+              <div style="margin-top:12px;font-size:12px"><strong>JavaScript (fetch)</strong></div>
+              <div class="code-wrap">
+                <button class="copy-btn" type="button">Copy</button>
+                <pre class="code-block">const res = await fetch('/solve/v2', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    equation: '19689a + 42155b + 1k = 500000',
+    constraints: { a: { max: 25 }, b: { max: 11 }, k: { max: 5000 } },
+  }),
+});
+const { ok, data } = await res.json();
+// data = [{ a: 21, b: 2, k: 2221 }, ...]</pre>
+              </div>
+
+              <div class="code-section__label" style="padding-top:12px">Try it</div>
+              <div class="try-it-box">
+                <label for="try-equation">Equation</label>
+                <input type="text" id="try-equation" value="19689a + 42155b + 1k = 500000" />
+                <label for="try-constraints">Constraints (JSON)</label>
+                <input type="text" id="try-constraints" value='{"a":{"max":25},"b":{"max":11},"k":{"max":5000}}' />
+                <button class="btn btn--primary" style="height:34px;font-size:13px" type="button"
+                  data-endpoint="solve" class="api-try-btn">▶ Send Request</button>
+                <div class="try-it-result"><pre id="try-result-solve">—</pre></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- / API DOCS PANEL -->
+
+    </div>
+    <!-- / page-panels -->
+  </div>
+  <!-- / app-main -->
+</div>
+<!-- / app-shell -->
+
+<!-- Scripts: libs first, then pages, then router -->
+<script src="lib/storage.js"></script>
+<script src="lib/format.js"></script>
+<script src="lib/market-client.js"></script>
+<script src="pages/optimizer.js"></script>
+<script src="pages/watchlist.js"></script>
+<script src="pages/history.js"></script>
+<script src="pages/compare.js"></script>
+<script src="pages/api-docs.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

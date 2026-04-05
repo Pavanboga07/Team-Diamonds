@@ -4,6 +4,7 @@ const path = require("path");
 
 const { requestLogging } = require("./src/middleware/requestLogging");
 const { createSolveRouter } = require("./src/routes/solve");
+const { createMarketRouter } = require("./src/routes/market");
 
 const { solveEquation } = require("./engine/engine");
 
@@ -27,19 +28,16 @@ function createApp() {
 
   app.use(express.json({ limit: "256kb" }));
 
-  // Serve the frontend (same-origin) for a production-like setup.
-  // Files are kept in the repo root for simplicity.
-  app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
-  });
-  app.get("/style.css", (req, res) => {
-    res.sendFile(path.join(__dirname, "style.css"));
-  });
-  app.get("/script.js", (req, res) => {
-    res.sendFile(path.join(__dirname, "script.js"));
-  });
+  // Redirect root → landing page
+  app.get("/", (req, res) => res.redirect("/landing.html"));
+
+  // Serve all static frontend files (landing.html, app.html, app.css, lib/, pages/, etc.)
+  app.use(express.static(path.join(__dirname), {
+    index: false, // don't auto-serve index.html; we handle root above
+  }));
 
   app.use(createSolveRouter({ solveEquation }));
+  app.use(createMarketRouter());
 
   // Minimal error handler (e.g., malformed JSON)
   // eslint-disable-next-line no-unused-vars

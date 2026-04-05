@@ -3,101 +3,216 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QuantSolve — Constraint-Based Equation Solver</title>
+    <title>QuantSolve — Portfolio Optimizer | Whole-Share Stock Allocations</title>
+    <meta name="description" content="Professional stock portfolio optimizer. Generate optimal whole-share allocations under budget using integer-linear optimization with live market prices." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+
+    <!-- ═══════════════════════════════════════════════════ HEADER -->
     <header class="app-header">
       <div class="app-header__inner">
-        <h1 class="app-title">QuantSolve</h1>
-        <p class="app-subtitle">Constraint-Based Equation Solver</p>
+        <div class="app-brand">
+          <div class="app-brand__logo">
+            <svg class="brand-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect width="32" height="32" rx="6" fill="#1B64F2"/>
+              <path d="M7 22L12 15L16 18L22 10" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="22" cy="10" r="2.5" fill="#4ADE80"/>
+            </svg>
+            <h1 class="app-title">QuantSolve</h1>
+          </div>
+          <p class="app-subtitle">Portfolio Optimizer</p>
+        </div>
+        <div class="app-badges">
+          <span class="badge badge--live" id="liveBadge">
+            <span class="badge__dot"></span>Live Data
+          </span>
+          <span class="badge badge--engine">Integer-Linear Solver</span>
+        </div>
       </div>
     </header>
 
     <main class="page">
-      <section class="card" aria-label="QuantSolve Dashboard">
-        <div class="card__section">
-          <label class="field__label" for="equationInput">Enter Equation</label>
-          <div class="row">
-            <input
-              id="equationInput"
-              class="field__input field__input--lg"
-              type="text"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="e.g., (10x + 20y) * 2 = 500"
-            />
-            <button id="solveBtn" class="btn btn--primary btn--lg" type="button">
-              Solve
-            </button>
-          </div>
-          <p class="hint">
-            Tip: add constraints like <span class="hint__code">x &gt;= 5</span>,
-            <span class="hint__code">y &lt;= 3</span>,
-            <span class="hint__code">z % 2 == 0</span>
-          </p>
+
+      <!-- ═══════════════════════════════════════════════ INPUT PANEL -->
+      <section class="card card--input" aria-label="Portfolio Builder">
+        <div class="card__header">
+          <h2 class="card__title">Build Your Portfolio</h2>
+          <p class="card__desc">Select stocks, set your budget, let the solver find all feasible whole-share allocations.</p>
         </div>
 
-        <div class="card__divider" role="separator" aria-hidden="true"></div>
-
-        <div class="card__section">
-          <div class="section-title">
-            <h2>Constraints</h2>
-            <span class="section-title__meta" id="constraintsCount">0</span>
-          </div>
-
-          <div class="row">
-            <input
-              id="constraintInput"
-              class="field__input"
-              type="text"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="e.g., x >= 5"
-            />
-            <button id="addConstraintBtn" class="btn btn--secondary" type="button">
-              Add
-            </button>
-          </div>
-
-          <div
-            id="constraintsTags"
-            class="tags"
-            aria-label="Constraints list"
-          ></div>
-        </div>
-
-        <div class="card__divider" role="separator" aria-hidden="true"></div>
-
-        <div class="card__section">
-          <div class="status" aria-live="polite" aria-atomic="true">
-            <div id="statusLine" class="status__line status__line--muted">
-              Ready.
+        <div class="form-body">
+          <!-- Ticker Input -->
+          <div class="form-group">
+            <label class="form-label" for="tickerInput">
+              Stock Tickers
+              <span class="form-label__hint">2–6 tickers</span>
+            </label>
+            <div class="ticker-field">
+              <div class="ticker-tags" id="tickerTags" aria-label="Selected tickers"></div>
+              <input
+                id="tickerInput"
+                class="ticker-input"
+                type="text"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                placeholder="Type ticker + Enter (e.g., AAPL)"
+                maxlength="10"
+                aria-label="Enter stock ticker symbol"
+              />
             </div>
-            <ul id="statusList" class="status__list" hidden></ul>
-          </div>
-        </div>
-
-        <div class="card__divider" role="separator" aria-hidden="true"></div>
-
-        <div class="card__section">
-          <div class="section-title">
-            <h2>Results</h2>
-            <span class="section-title__meta" id="resultsMeta">—</span>
-          </div>
-
-          <div id="resultsEmpty" class="empty">
-            Results will appear here after solving.
+            <div class="popular-tickers">
+              <span class="popular-label">Popular:</span>
+              <button class="quick-ticker" type="button" data-ticker="AAPL">AAPL</button>
+              <button class="quick-ticker" type="button" data-ticker="MSFT">MSFT</button>
+              <button class="quick-ticker" type="button" data-ticker="NVDA">NVDA</button>
+              <button class="quick-ticker" type="button" data-ticker="GOOGL">GOOGL</button>
+              <button class="quick-ticker" type="button" data-ticker="AMZN">AMZN</button>
+              <button class="quick-ticker" type="button" data-ticker="TSLA">TSLA</button>
+            </div>
           </div>
 
-          <div id="tableWrap" class="table-wrap" hidden>
-            <table class="table" aria-label="Results table">
-              <thead id="resultsThead"></thead>
-              <tbody id="resultsTbody"></tbody>
-            </table>
+          <!-- Budget + Options row -->
+          <div class="form-row">
+            <div class="form-group form-group--flex">
+              <label class="form-label" for="budgetInput">Budget (USD)</label>
+              <div class="input-with-prefix">
+                <span class="input-prefix">$</span>
+                <input
+                  id="budgetInput"
+                  class="field-input"
+                  type="number"
+                  min="1"
+                  max="999999"
+                  step="1"
+                  value="5000"
+                  autocomplete="off"
+                  aria-label="Investment budget in USD"
+                />
+              </div>
+            </div>
+            <div class="form-group form-group--flex">
+              <label class="form-label" for="maxLeftoverInput">Max Cash Leftover</label>
+              <div class="input-with-prefix">
+                <span class="input-prefix">$</span>
+                <input
+                  id="maxLeftoverInput"
+                  class="field-input"
+                  type="number"
+                  min="0"
+                  max="50000"
+                  step="1"
+                  value="50"
+                  autocomplete="off"
+                  aria-label="Maximum leftover cash in USD"
+                />
+              </div>
+            </div>
           </div>
+
+          <!-- Generate Button -->
+          <button id="generateBtn" class="btn btn--primary btn--generate" type="button">
+            <span class="btn__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 10h14M10 3l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="btn__text">Generate Portfolios</span>
+          </button>
         </div>
       </section>
+
+      <!-- ═══════════════════════════════════════════════ KPI STRIP -->
+      <div class="kpi-strip" id="kpiStrip" hidden>
+        <div class="kpi-card kpi-card--blue">
+          <div class="kpi-label">Total Budget</div>
+          <div class="kpi-value" id="kpiBudget">—</div>
+        </div>
+        <div class="kpi-card kpi-card--green">
+          <div class="kpi-label">Best Invested</div>
+          <div class="kpi-value" id="kpiInvested">—</div>
+        </div>
+        <div class="kpi-card kpi-card--gray">
+          <div class="kpi-label">Min Cash Left</div>
+          <div class="kpi-value" id="kpiCash">—</div>
+        </div>
+        <div class="kpi-card kpi-card--purple">
+          <div class="kpi-label">Portfolios Found</div>
+          <div class="kpi-value" id="kpiCount">—</div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════ STATUS BAR -->
+      <div class="status-bar" id="statusBar" aria-live="polite" aria-atomic="false">
+        <div class="status-bar__main" id="statusMain">
+          <span class="status-dot status-dot--idle" id="statusDot"></span>
+          <span id="statusText" class="status-text">Select tickers and a budget to generate portfolios.</span>
+        </div>
+        <div class="status-bar__meta" id="statusMeta" hidden>
+          <span class="status-requestid" id="statusRequestId"></span>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════ RESULTS TABLE -->
+      <section class="card card--results" id="resultsCard" hidden aria-label="Portfolio Results">
+        <div class="card__header card__header--row">
+          <div>
+            <h2 class="card__title">Portfolio Candidates</h2>
+            <p class="card__desc" id="resultsMeta">—</p>
+          </div>
+          <div class="source-badge" id="sourceBadge"></div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="portfolio-table" id="portfolioTable" aria-label="Portfolio allocation table">
+            <thead id="portfolioThead"></thead>
+            <tbody id="portfolioTbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════ ADVANCED / SOLVER MATH -->
+      <details class="solver-math" id="solverMath">
+        <summary class="solver-math__toggle">
+          <span class="solver-math__icon" aria-hidden="true">∑</span>
+          <span class="solver-math__label">Solver Equation <span class="solver-math__sub">(for judges & transparency)</span></span>
+          <span class="solver-math__chevron" aria-hidden="true">›</span>
+        </summary>
+        <div class="solver-math__body">
+          <div class="code-section">
+            <div class="code-section__label">Equation sent to /solve/v2</div>
+            <pre id="equationDisplay" class="code-block">—</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-section__label">Constraints</div>
+            <pre id="constraintsDisplay" class="code-block">—</pre>
+          </div>
+          <div class="code-section">
+            <div class="code-section__label">Prices (cents)</div>
+            <pre id="pricesDisplay" class="code-block">—</pre>
+          </div>
+        </div>
+      </details>
+
+      <!-- ═══════════════════════════════════════════════ EMPTY STATE -->
+      <div class="empty-state" id="emptyState" aria-live="polite">
+        <div class="empty-state__icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="32" width="8" height="24" rx="2" fill="currentColor" opacity="0.3"/>
+            <rect x="20" y="20" width="8" height="36" rx="2" fill="currentColor" opacity="0.5"/>
+            <rect x="32" y="12" width="8" height="44" rx="2" fill="currentColor" opacity="0.7"/>
+            <rect x="44" y="24" width="8" height="32" rx="2" fill="currentColor" opacity="0.4"/>
+            <path d="M6 58h52" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+          </svg>
+        </div>
+        <p class="empty-state__title">No portfolios yet</p>
+        <p class="empty-state__desc">Enter 2–6 stock tickers and a budget above, then click <strong>Generate Portfolios</strong>.</p>
+      </div>
+
     </main>
 
     <script src="script.js" defer></script>

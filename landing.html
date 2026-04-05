@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuantSolve — Professional Stock Portfolio Optimizer</title>
+  <meta name="description" content="Generate optimal whole-share stock portfolios under budget using integer-linear math. Free to use, no signup required." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="landing.css" />
+</head>
+<body>
+
+<!-- ════ NAV ════ -->
+<header class="lp-nav">
+  <div class="lp-container lp-nav__inner">
+    <a href="/" class="lp-brand">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="6" fill="#1B64F2"/>
+        <path d="M7 22L12 15L16 18L22 10" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="22" cy="10" r="2.5" fill="#4ADE80"/>
+      </svg>
+      <span class="lp-brand__name">QuantSolve</span>
+    </a>
+    <nav class="lp-nav__links" aria-label="Site navigation">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#api">API</a>
+    </nav>
+    <a href="/app.html" class="lp-cta-btn">Launch App →</a>
+  </div>
+</header>
+
+<!-- ════ HERO ════ -->
+<section class="lp-hero">
+  <div class="lp-container">
+    <div class="lp-hero__badge">
+      <span class="lp-dot lp-dot--green"></span>Free &amp; open · No signup · No nonsense
+    </div>
+    <h1 class="lp-hero__h1">Build Smarter Stock Portfolios<br>with <span class="lp-h1__accent">Mathematical Precision</span></h1>
+    <p class="lp-hero__sub">QuantSolve uses <strong>integer-linear optimization</strong> to find every feasible whole-share allocation within your exact budget. Not one recommendation — <em>every valid combination</em>, ranked by capital efficiency.</p>
+    <div class="lp-hero__actions">
+      <a href="/app.html" class="lp-btn-primary">→ Launch Portfolio Optimizer</a>
+      <a href="#how-it-works" class="lp-btn-ghost">See how it works</a>
+    </div>
+
+    <!-- Mini dashboard mockup -->
+    <div class="lp-mockup">
+      <div class="lp-mockup__bar">
+        <span class="lp-mockup__dot" style="background:#FF5F57"></span>
+        <span class="lp-mockup__dot" style="background:#FEBC2E"></span>
+        <span class="lp-mockup__dot" style="background:#28C840"></span>
+        <span style="font-size:11px;color:#9CA3AF;margin-left:auto">QuantSolve — Portfolio Optimizer</span>
+      </div>
+      <div class="lp-mockup__body">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+          <div class="lp-mock-kpi lp-mock-kpi--blue"><div class="lp-mock-kpi__l">TOTAL BUDGET</div><div class="lp-mock-kpi__v">$10,000</div></div>
+          <div class="lp-mock-kpi lp-mock-kpi--green"><div class="lp-mock-kpi__l">BEST INVESTED</div><div class="lp-mock-kpi__v" style="color:#16A34A">$9,998.97</div></div>
+          <div class="lp-mock-kpi"><div class="lp-mock-kpi__l">CASH LEFT</div><div class="lp-mock-kpi__v">$1.03</div></div>
+          <div class="lp-mock-kpi lp-mock-kpi--purple"><div class="lp-mock-kpi__l">PORTFOLIOS</div><div class="lp-mock-kpi__v" style="color:#7C3AED">3</div></div>
+        </div>
+        <table class="lp-mock-table">
+          <thead><tr><th>#</th><th>AAPL Shares</th><th>NVDA Shares</th><th>Invested</th><th>% Invested</th></tr></thead>
+          <tbody>
+            <tr class="lp-mock-best"><td>1</td><td>33</td><td>4</td><td style="color:#16A34A;font-weight:700">$9,998.97</td><td>100.0%</td></tr>
+            <tr><td>2</td><td>24</td><td>6</td><td style="color:#16A34A;font-weight:700">$9,977.76</td><td>99.8%</td></tr>
+            <tr><td>3</td><td>15</td><td>8</td><td style="color:#16A34A;font-weight:700">$9,956.55</td><td>99.6%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ FEATURES ════ -->
+<section class="lp-features" id="features">
+  <div class="lp-container">
+    <div class="lp-section-label">Features</div>
+    <h2 class="lp-section-h2">Everything you need to optimize your portfolio</h2>
+    <div class="lp-cards">
+      <div class="lp-card"><div class="lp-card__icon lp-card__icon--blue">📊</div><h3>Live Market Prices</h3><p>Fetches real stock prices with automatic fallback to curated demo data when markets are closed or API is unavailable.</p></div>
+      <div class="lp-card"><div class="lp-card__icon lp-card__icon--purple">🔢</div><h3>Integer-Linear Solver</h3><p>A custom backtracking engine finds every valid whole-share combination within your exact budget — not just a single recommendation.</p></div>
+      <div class="lp-card"><div class="lp-card__icon lp-card__icon--green">📈</div><h3>All Feasible Portfolios</h3><p>See every valid allocation ranked by capital efficiency. Export results as CSV for further analysis in Excel or Python.</p></div>
+      <div class="lp-card"><div class="lp-card__icon lp-card__icon--amber">👁</div><h3>Watchlist</h3><p>Track your favourite tickers with live prices updating every 30 seconds. One click to load any combination into the optimizer.</p></div>
+      <div class="lp-card"><div class="lp-card__icon lp-card__icon--blue">📋</div><h3>Run History</h3><p>Every optimization is saved locally in your browser. Re-run with fresh prices or jump back to any past result instantly.</p></div>
+      <div class="lp-card"><div class="lp-card__icon lp-card__icon--green">🔌</div><h3>Developer API</h3><p>Full REST API with live docs and try-it interface. Integrate the solver into your own apps with curl, JavaScript, or Python.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ HOW IT WORKS ════ -->
+<section class="lp-steps" id="how-it-works">
+  <div class="lp-container">
+    <div class="lp-section-label">How it works</div>
+    <h2 class="lp-section-h2">Three steps to an optimal allocation</h2>
+    <div class="lp-steps__grid">
+      <div class="lp-step">
+        <div class="lp-step__num">01</div>
+        <h3>Pick your stocks</h3>
+        <p>Choose 2–6 ticker symbols from the popular list or type your own. Live prices are fetched immediately.</p>
+      </div>
+      <div class="lp-step__arrow">→</div>
+      <div class="lp-step">
+        <div class="lp-step__num">02</div>
+        <h3>Set your budget</h3>
+        <p>Enter your total investment budget and a maximum acceptable cash remainder. No magic guessing — you control the parameters.</p>
+      </div>
+      <div class="lp-step__arrow">→</div>
+      <div class="lp-step">
+        <div class="lp-step__num">03</div>
+        <h3>Get every allocation</h3>
+        <p>The integer-linear solver finds all valid whole-share portfolios, ranked by how efficiently they use your capital.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ API CALLOUT ════ -->
+<section class="lp-api" id="api">
+  <div class="lp-container">
+    <div class="lp-api__inner">
+      <div class="lp-api__left">
+        <div class="lp-section-label">Developer API</div>
+        <h2 class="lp-section-h2" style="margin-top:8px">Use the solver in your own app</h2>
+        <p style="color:#374151;font-size:15px;line-height:1.7;margin-top:8px">Access live market prices and the full integer-linear solver via REST. No API key required for development.</p>
+        <a href="/app.html#api-docs" class="lp-btn-primary" style="margin-top:20px;display:inline-flex">View full API docs →</a>
+      </div>
+      <div class="lp-api__right">
+        <pre class="lp-code-block">curl -X POST http://localhost:3000/solve/v2 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "equation": "19689a + 42155b + 1k = 500000",
+    "constraints": {
+      "a": { "max": 25 },
+      "b": { "max": 11 },
+      "k": { "max": 5000 }
+    }
+  }'</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CTA ════ -->
+<section class="lp-cta-section">
+  <div class="lp-container" style="text-align:center">
+    <h2 style="font-size:28px;font-weight:800;color:#111827;margin:0 0 12px">Ready to optimize your portfolio?</h2>
+    <p style="color:#6B7280;font-size:15px;margin:0 0 28px">Free to use. No login. Results in seconds.</p>
+    <a href="/app.html" class="lp-btn-primary lp-btn-primary--lg">→ Launch Portfolio Optimizer</a>
+  </div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer class="lp-footer">
+  <div class="lp-container">
+    <div class="lp-footer__inner">
+      <div class="lp-brand" style="gap:8px">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="6" fill="#1B64F2"/><path d="M7 22L12 15L16 18L22 10" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="10" r="2.5" fill="#4ADE80"/></svg>
+        <span style="font-weight:700;color:#1B64F2">QuantSolve</span>
+      </div>
+      <div style="font-size:12px;color:#9CA3AF">Integer-Linear Portfolio Engine · Built for Orchathon Hackathon</div>
+      <div style="font-size:12px;color:#9CA3AF">No login · No tracking · All data stays in your browser</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
