@@ -4,12 +4,234 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Equation Solver — QuantSolve</title>
-  <meta name="description" content="Solve linear Diophantine equations with integer constraints. Supports brackets, BODMAS, multi-variable equations." />
+  <meta name="description" content="Solve linear, quadratic, polynomial, and systems of equations. Supports brackets, BODMAS, multi-variable, and integer constraints." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="../app.css" />
+  <style>
+    /* ── Solver page overrides ────────────────────────────────────── */
+
+    /* Mode toggle */
+    .slv-mode-toggle {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* Equation input */
+    #slv-equation {
+      width: 100%;
+      height: 42px;
+      padding: 0 14px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
+      box-shadow: var(--shadow-xs);
+    }
+    #slv-equation:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(27,100,242,0.10);
+    }
+    #slv-equation::placeholder { color: var(--text-faint); font-size: 13px; }
+
+    /* System equations */
+    .slv-sys-row { display: flex; gap: 8px; align-items: center; }
+    .slv-sys-row input { flex: 1; }
+
+    /* Action row header shared */
+    .slv-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+
+    /* Small action buttons */
+    .btn-sm {
+      height: 32px;
+      padding: 0 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--t-fast);
+      white-space: nowrap;
+    }
+    .btn-sm:hover {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+      color: var(--primary);
+    }
+
+    /* Result pane */
+    #slv-results {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: var(--shadow-card);
+    }
+
+    /* Badge + meta row */
+    .slv-result-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #slv-meta {
+      font-size: 12px;
+      color: var(--text-faint);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Pills */
+    #slv-pills-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 4px 0;
+    }
+
+    #slv-status {
+      font-size: 13px;
+      min-height: 20px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Tab buttons */
+    .slv-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* Solution table */
+    #slv-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    #slv-table thead th {
+      padding: 10px 16px;
+      background: var(--surface-alt);
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    #slv-table tbody tr {
+      border-bottom: 1px solid var(--divider);
+      transition: background var(--t-fast);
+    }
+    #slv-table tbody tr:nth-child(even) { background: #FAFCFF; }
+    #slv-table tbody tr:hover { background: var(--surface-hover); }
+    #slv-table td {
+      padding: 10px 16px;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+    #slv-table td:first-child {
+      color: var(--text-faint);
+      font-size: 11px;
+      width: 40px;
+    }
+    #slv-table td.val-cell {
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 14px;
+    }
+
+    /* Canvas wrapper */
+    .slv-chart-pad { padding: 20px; }
+    #slv-canvas { width: 100%; display: block; border-radius: 6px; }
+
+    /* Form body gap */
+    .slv-form-body {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Constraint rows */
+    .slv-constraint-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .slv-eq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Examples row */
+    .slv-examples {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 2px;
+    }
+    .slv-examples-label {
+      font-size: 11px;
+      color: var(--text-faint);
+      font-weight: 600;
+      align-self: center;
+      letter-spacing: 0.2px;
+    }
+
+    /* Solve button override — big CTA */
+    #slv-solveBtn {
+      width: 100%;
+      height: 44px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.1px;
+    }
+
+    /* Card header label */
+    .slv-card-desc {
+      font-size: 12px;
+      color: var(--text-faint);
+      font-weight: 400;
+    }
+
+    /* Divider inside form */
+    .slv-divider {
+      height: 1px;
+      background: var(--divider);
+      margin: 2px -2px;
+    }
+  </style>
 </head>
 <body>
 <div class="app-shell">
@@ -23,89 +245,149 @@
       <div class="page-panel">
         <div class="panel-content">
 
+          <!-- ── Page header ─────────────────────────────────────── -->
           <div class="panel-header">
             <div>
               <h1 class="panel-title">Equation Solver</h1>
-              <p class="panel-desc">Solve any linear Diophantine equation with integer constraints — the engine this product is built on.</p>
+              <p class="panel-desc">Solves linear, quadratic, polynomial, and systems of equations — with full BODMAS support.</p>
             </div>
           </div>
 
-          <!-- Input card -->
+          <!-- ── Input card ──────────────────────────────────────── -->
           <div class="card">
             <div class="card__header">
-              <h3 class="card__title">Enter Equation</h3>
-              <span style="font-size:11px;color:var(--text-faint)">Enter to solve</span>
+              <div>
+                <h2 class="card__title">Enter Equation</h2>
+                <p class="card__desc">Type any equation and choose a solving mode.</p>
+              </div>
+              <!-- Mode buttons -->
+              <div class="slv-mode-toggle" role="group" aria-label="Solver mode">
+                <button class="slv-mode-btn active" data-mode="general"   id="mode-general"   type="button">📐 General</button>
+                <button class="slv-mode-btn"         data-mode="financial" id="mode-financial" type="button">💰 Financial</button>
+                <button class="slv-mode-btn"         data-mode="complex"   id="mode-complex"   type="button">🧩 Complex</button>
+              </div>
             </div>
-            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
-              <div>
-                <label class="form-label" style="margin-bottom:6px;display:block">Linear equation <span class="form-label__hint">e.g. 3a + 5b + 2c = 60</span></label>
-                <input id="slv-equation" type="text" class="field-input"
-                  placeholder="e.g. 10x + 20y = 100"
-                  style="font-family:ui-monospace,monospace;font-size:15px;letter-spacing:0.5px;border:1px solid var(--border-strong);border-radius:6px;height:44px;padding:0 14px"
-                  spellcheck="false" autocomplete="off" />
+
+            <div class="slv-form-body">
+
+              <!-- Single equation input (general / financial / complex) -->
+              <div id="slv-single-wrap">
+                <label class="form-label" for="slv-equation">
+                  Equation
+                  <span class="form-label__hint" id="slv-hint">e.g. x² - 5x + 6 = 0</span>
+                </label>
+                <input
+                  id="slv-equation"
+                  type="text"
+                  placeholder="e.g.  x^2 - 5x + 6 = 0"
+                  spellcheck="false"
+                  autocomplete="off"
+                  aria-label="Equation to solve"
+                />
               </div>
 
-              <!-- Constraints -->
-              <div>
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                  <label class="form-label" style="margin:0">Constraints <span class="form-label__hint">optional</span></label>
-                  <button id="slv-addConstraint" class="btn" type="button"
-                    style="height:28px;font-size:12px;border:1px solid var(--border);padding:0 10px">+ Add</button>
+              <!-- System equations input (hidden) -->
+              <div id="slv-system-wrap" hidden>
+                <div class="slv-section-header">
+                  <label class="form-label">System of Equations</label>
+                  <button id="slv-addEq" class="btn-sm" type="button">+ Add Equation</button>
                 </div>
-                <div id="slv-constraintList" style="display:flex;flex-direction:column;gap:6px"></div>
+                <div id="slv-eqList" class="slv-eq-list"></div>
               </div>
 
-              <!-- Examples -->
-              <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px">
-                <span style="font-size:11px;color:var(--text-faint);align-self:center;font-weight:600">Examples:</span>
-                <button data-example="simple"    class="quick-ticker" type="button">50x = 200</button>
-                <button data-example="twovars"   class="quick-ticker" type="button">10x + 20y = 100</button>
-                <button data-example="brackets"  class="quick-ticker" type="button">(10x+20y)×2 + 5z = 500</button>
-                <button data-example="fivevars"  class="quick-ticker" type="button">5 variables</button>
-                <button data-example="portfolio" class="quick-ticker" type="button">Portfolio (with limits)</button>
-                <button data-example="impossible" class="quick-ticker" type="button">Impossible: 2x+4y=3</button>
+              <!-- Constraints (financial mode) -->
+              <div id="slv-constraints-wrap" hidden>
+                <div class="slv-section-header">
+                  <label class="form-label">
+                    Variable Constraints
+                    <span class="form-label__hint">optional</span>
+                  </label>
+                  <button id="slv-addConstraint" class="btn-sm" type="button">+ Add Constraint</button>
+                </div>
+                <div id="slv-constraintList" class="slv-constraint-list"></div>
               </div>
 
+              <div class="slv-divider"></div>
+
+              <!-- Examples row -->
+              <div class="slv-examples">
+                <span class="slv-examples-label">Examples:</span>
+                <button data-example="linear"     class="quick-ticker" type="button">50x = 200</button>
+                <button data-example="twovars"    class="quick-ticker" type="button">10x + 20y = 100</button>
+                <button data-example="quadratic"  class="quick-ticker" type="button">x²-5x+6=0</button>
+                <button data-example="cubic"      class="quick-ticker" type="button">x³-6x²+11x-6=0</button>
+                <button data-example="nonlinear"  class="quick-ticker" type="button">💰 Non-linear alloc</button>
+                <button data-example="brackets"   class="quick-ticker" type="button">(10x+20y)×2+5z=500</button>
+                <button data-example="complex"     class="quick-ticker" type="button">🧩 ((x²+y³)·5)²+250z=625</button>
+                <button data-example="portfolio"  class="quick-ticker" type="button">Portfolio</button>
+                <button data-example="impossible" class="quick-ticker" type="button">Impossible</button>
+              </div>
+
+              <!-- Solve button -->
               <button id="slv-solveBtn" class="btn btn--primary btn--generate" type="button">
-                <span style="font-size:16px">▶</span>
+                <span style="font-size:17px;line-height:1">▶</span>
                 <span class="btn__text">Solve</span>
               </button>
 
-              <div id="slv-status" style="font-size:13px;min-height:18px"></div>
+              <!-- Status line -->
+              <div id="slv-status" aria-live="polite"></div>
+
             </div>
           </div>
 
-          <!-- Results -->
+          <!-- ── Results pane ────────────────────────────────────── -->
           <div id="slv-results" hidden>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
-              <button id="slv-tabTable" class="slv-tab slv-tab--active" type="button">📋 Table</button>
-              <button id="slv-tabChart" class="slv-tab" type="button">📊 Chart</button>
+
+            <!-- Type badge + meta -->
+            <div class="slv-result-header">
+              <span id="slv-type-badge" class="result-badge"></span>
+              <span id="slv-meta"></span>
             </div>
-            <div id="slv-viewTable">
-              <div class="card">
-                <div class="card__header">
-                  <h3 class="card__title">Solutions</h3>
-                  <span id="slv-meta" style="font-size:12px;color:var(--text-faint)"></span>
+
+            <!-- Few solutions: pill display -->
+            <div id="slv-pills" hidden>
+              <div id="slv-pills-inner"></div>
+            </div>
+
+            <!-- Table / Chart view for many solutions -->
+            <div id="slv-table-chart-wrap" hidden>
+              <div class="slv-tabs">
+                <button id="slv-tabTable" class="slv-tab slv-tab--active" type="button">📋 Table</button>
+                <button id="slv-tabChart" class="slv-tab" type="button">📊 Chart</button>
+              </div>
+
+              <!-- Table view -->
+              <div id="slv-viewTable">
+                <div class="card">
+                  <div class="card__header">
+                    <h3 class="card__title">Solutions</h3>
+                    <span id="slv-table-meta" class="slv-card-desc"></span>
+                  </div>
+                  <div class="table-wrap" style="max-height:420px;overflow-y:auto">
+                    <table id="slv-table">
+                      <thead></thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
                 </div>
-                <div class="table-wrap" style="max-height:400px;overflow-y:auto">
-                  <table id="slv-table" style="width:100%;border-collapse:collapse">
-                    <thead></thead><tbody></tbody>
-                  </table>
+              </div>
+
+              <!-- Chart view -->
+              <div id="slv-viewChart" hidden>
+                <div class="card">
+                  <div class="card__header">
+                    <h3 class="card__title" id="slv-chartTitle">Solution Space</h3>
+                    <span id="slv-chartDesc" class="slv-card-desc"></span>
+                  </div>
+                  <div class="slv-chart-pad">
+                    <canvas id="slv-canvas"></canvas>
+                  </div>
                 </div>
               </div>
             </div>
-            <div id="slv-viewChart" hidden>
-              <div class="card">
-                <div class="card__header">
-                  <h3 class="card__title" id="slv-chartTitle">Solution Space</h3>
-                  <span id="slv-chartDesc" style="font-size:11px;color:var(--text-faint)"></span>
-                </div>
-                <div style="padding:16px">
-                  <canvas id="slv-canvas" style="width:100%;border-radius:4px;display:block"></canvas>
-                </div>
-              </div>
-            </div>
+
           </div>
+          <!-- /Results -->
 
         </div>
       </div>

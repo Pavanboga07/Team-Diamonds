@@ -21,14 +21,15 @@ const CLOSE_TO_OPEN = {
 };
 
 const PRECEDENCE = {
-  "u-": 3,
+  "u-": 4,
+  "^": 3,
   "*": 2,
   "/": 2,
   "+": 1,
   "-": 1,
 };
 
-const RIGHT_ASSOC = new Set(["u-"]);
+const RIGHT_ASSOC = new Set(["u-", "^"]);
 
 function isOperatorToken(t) {
   return t.type === "op" && t.value !== "=";
@@ -234,7 +235,7 @@ function rpnToAst(rpn) {
         continue;
       }
 
-      if (t.value === "+" || t.value === "-" || t.value === "*" || t.value === "/") {
+      if (t.value === "+" || t.value === "-" || t.value === "*" || t.value === "/" || t.value === "^") {
         const right = stack.pop();
         const left = stack.pop();
         if (!left || !right) throw new Error(`Operator '${t.value}' missing operand(s).`);

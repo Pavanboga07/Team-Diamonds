@@ -5,16 +5,16 @@
  * Tries the compiled Rust/WASM engine first.
  * Falls back to the plain JS engine transparently on any load error.
  *
- * The WASM engine returns a JSON string; this shim parses it so the
- * caller always receives either an Array<object> or a string message —
- * identical to what the JS engine returns.
+ * Exposes:
+ *   - solveEquation(equation, constraints, options)  → single equation
+ *   - solveSystem(equations[], constraints, options) → system of equations
  */
 
 let wasmSolve = null;
 
 try {
   const wasm = require('./wasm/quantsolve_engine.js');
-  wasmSolve = wasm.solve_equation;          // (equation, constraints_json, max_results) => string
+  wasmSolve = wasm.solve_equation;
 } catch (_) {
   // WASM not available — will fall back to JS
 }
@@ -22,11 +22,10 @@ try {
 const jsEngine = require('./engine.js');
 
 /**
- * Solve an equation string with optional constraints.
- *
- * @param {string}  equation        e.g. "10x + 20y = 100"
- * @param {object}  constraintsRaw  e.g. { x: { min:5 }, y: { max:3 } }
- * @param {object}  options         e.g. { maxResults: 500 }
+ * Solve a single equation string.
+ * @param {string}  equation
+ * @param {object}  constraintsRaw
+ * @param {object}  options   e.g. { maxResults, mode: 'financial' }
  * @returns {Array<Record<string,number>> | string}
  */
 function solveEquation(equation, constraintsRaw, options) {
@@ -36,19 +35,25 @@ function solveEquation(equation, constraintsRaw, options) {
     try {
       const constraintsJson = JSON.stringify(constraintsRaw ?? {});
       const result = wasmSolve(equation, constraintsJson, maxResults);
-
-      // WASM returns a JSON-encoded array or a plain error string
-      if (result.startsWith('[')) {
-        return JSON.parse(result);
-      }
-      return result;   // string message (error / no-solutions / etc.)
+      if (result.startsWith('[')) return JSON.parse(result);
+      return result;
     } catch (err) {
-      // WASM error → fall through to JS fallback
       console.warn('[engine] WASM solve failed, falling back to JS engine:', err.message);
     }
   }
 
-  return jsEngine.solveEquation(equation, constraintsRaw, { maxResults });
+  return jsEngine.solveEquation(equation, constraintsRaw, { maxResults, ...options });
 }
 
-module.exports = { solveEquation };
+/**
+ * Solve a system of equations.
+ * @param {string[]} equations
+ * @param {object}   constraintsRaw
+ * @param {object}   options
+ * @returns {Array<Record<string,number>> | string}
+ */
+function solveSystem(equations, constraintsRaw, options) {
+  return jsEngine.solveSystem(equations, constraintsRaw, options);
+}
+
+module.exports = { solveEquation, solveSystem };

@@ -7,9 +7,81 @@
   <meta name="description" content="Track Indian NSE stocks with live prices and add them to the portfolio optimizer." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="../app.css" />
+  <style>
+    /* ── Watchlist page ──── */
+    .page-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-sm {
+      height: 34px;
+      padding: 0 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 7px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 120ms;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-sm:hover {
+      background: var(--surface-alt);
+      border-color: var(--border-strong);
+    }
+    .btn-sm--primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 1px 3px rgba(27,100,242,0.25);
+    }
+    .btn-sm--primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+    /* Add ticker section */
+    .wl-add-body {
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .wl-input-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .wl-input-row .field-input {
+      flex: 1;
+      min-width: 140px;
+      height: 36px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-md);
+    }
+    .wl-input-row .field-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(27,100,242,0.10);
+      outline: none;
+    }
+    /* Empty state */
+    .wl-empty-wrap {
+      padding: 24px;
+    }
+    /* Updated time */
+    .wl-updated {
+      font-size: 11px;
+      color: var(--text-faint);
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
 <div class="app-shell">
@@ -23,28 +95,36 @@
       <div class="page-panel">
         <div class="panel-content">
 
+          <!-- Page header -->
           <div class="panel-header">
             <div>
               <h1 class="panel-title">Watchlist</h1>
               <p class="panel-desc">Track your favourite stocks with live prices. One click to drop them into the optimizer.</p>
             </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <small id="wl-lastUpdated" style="color:var(--text-faint);font-size:11px"></small>
-              <button class="btn btn--primary" id="wl-optimizeBtn" type="button" style="height:34px;font-size:12px">→ Optimize Selected</button>
-              <button class="btn" id="wl-refreshBtn" type="button" style="height:34px;font-size:12px;border:1px solid var(--border)">↻ Refresh</button>
+            <div class="page-actions">
+              <small id="wl-lastUpdated" class="wl-updated"></small>
+              <button class="btn-sm btn-sm--primary" id="wl-optimizeBtn" type="button">→ Optimize Selected</button>
+              <button class="btn-sm" id="wl-refreshBtn" type="button">↻ Refresh</button>
             </div>
           </div>
 
-          <!-- Add ticker -->
+          <!-- Add ticker card -->
           <div class="card">
-            <div class="card__header"><h3 class="card__title">Add Ticker</h3></div>
-            <div style="padding:14px;display:flex;gap:8px;flex-wrap:wrap">
-              <input type="text" id="wl-input" placeholder="e.g. RELIANCE, TCS, INFY"
-                class="field-input" style="flex:1;min-width:160px;border:1px solid var(--border-strong);border-radius:var(--radius-md);height:38px"
-                autocapitalize="characters" spellcheck="false" />
-              <button class="btn btn--primary" id="wl-addBtn" type="button" style="height:38px">Add</button>
+            <div class="card__header">
+              <h2 class="card__title">Add Ticker</h2>
             </div>
-            <div style="padding:0 14px 14px">
+            <div class="wl-add-body">
+              <div class="wl-input-row">
+                <input
+                  type="text"
+                  id="wl-input"
+                  placeholder="e.g. RELIANCE, TCS, INFY"
+                  class="field-input"
+                  autocapitalize="characters"
+                  spellcheck="false"
+                />
+                <button class="btn-sm btn-sm--primary" id="wl-addBtn" type="button" style="height:40px;padding:0 20px;font-size:13px">Add</button>
+              </div>
               <div class="popular-tickers">
                 <span class="popular-label">Quick add:</span>
                 <button class="quick-ticker" data-wl-ticker="RELIANCE"  type="button">RELIANCE</button>
@@ -57,7 +137,7 @@
             </div>
           </div>
 
-          <!-- Watchlist table -->
+          <!-- Watchlist table card -->
           <div class="card">
             <div class="table-wrap">
               <table class="portfolio-table" id="wl-table">
@@ -65,16 +145,16 @@
                   <tr>
                     <th class="col--number"><input type="checkbox" id="wl-selectAll" aria-label="Select all"></th>
                     <th>Ticker</th>
-                    <th style="text-align:right">Price</th>
-                    <th style="text-align:right">Change</th>
+                    <th class="col--money">Price</th>
+                    <th class="col--money">Change</th>
                     <th>Last Updated</th>
-                    <th style="text-align:right">Actions</th>
+                    <th class="col--money">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="wl-tbody"></tbody>
               </table>
             </div>
-            <div class="empty-state" id="wl-empty" style="padding:32px">
+            <div class="empty-state wl-empty-wrap" id="wl-empty">
               <p class="empty-state__desc">No tickers in your watchlist. Add some above.</p>
             </div>
           </div>

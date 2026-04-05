@@ -4,14 +4,16 @@
  * Goal: Convert an equation string into tokens without evaluating it.
  * - Handles multi-digit integers
  * - Handles variables (single letters)
- * - Operators: + - * / =
+ * - Operators: + - * / = ^
  * - Brackets: ( ) [ ]
  * - Implicit multiplication: 10x -> 10 * x, 2(x+1) -> 2 * (x+1), xy -> x * y
  */
 
 /** @typedef {{ type: 'number', value: number } | { type: 'ident', value: string } | { type: 'op', value: '+'|'-'|'*'|'/'|'=' } | { type: 'paren', value: '('|')'|'['|']' }} Token */
 
-const OPS = new Set(["+", "-", "*", "/", "="]);
+const OPS = new Set(["+", "-", "*", "/", "=", "^"]);
+// Decimal support flag
+const DEC = true;
 const OPEN = new Set(["(", "["]);
 const CLOSE = new Set([")", "]"]);
 
@@ -107,13 +109,18 @@ function tokenizeEquation(input) {
       continue;
     }
 
-    if (isDigit(ch)) {
+    if (isDigit(ch) || (ch === '.' && DEC && i + 1 < input.length && isDigit(input[i + 1]))) {
       let start = i;
       while (i < input.length && isDigit(input[i])) i++;
+      // decimal part
+      if (i < input.length && input[i] === '.' && DEC) {
+        i++; // consume '.'
+        while (i < input.length && isDigit(input[i])) i++;
+      }
       const raw = input.slice(start, i);
       const value = Number(raw);
-      if (!Number.isSafeInteger(value)) {
-        throw new Error(`Invalid or unsafe integer literal: ${raw}`);
+      if (!isFinite(value)) {
+        throw new Error(`Invalid numeric literal: ${raw}`);
       }
       tokens.push({ type: "number", value });
       continue;

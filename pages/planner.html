@@ -7,38 +7,257 @@
   <meta name="description" content="Plan how many shares of NSE stocks you can buy within a budget. Powered by integer-linear solving." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="../app.css" />
   <style>
-    .stock-card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; margin-bottom:16px; }
-    .stock-card { border:2px solid var(--border); border-radius:10px; padding:12px; cursor:pointer; transition:all 150ms; background:#fff; position:relative; user-select:none; }
-    .stock-card:hover { border-color:#93C5FD; background:#F8FAFF; }
-    .stock-card.selected { border-color:#1B64F2; background:#EFF6FF; }
-    .stock-card__name { font-size:11px; color:var(--text-muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .stock-card__price { font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:8px; }
-    .stock-card__chg { font-size:11px; font-weight:600; margin-top:3px; }
-    .stock-card__check { position:absolute; top:8px; right:8px; width:18px; height:18px; border-radius:50%; background:#1B64F2; display:none; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:900; }
-    .stock-card.selected .stock-card__check { display:flex; }
-    .stock-card__avatar { width:32px; height:32px; border-radius:7px; background:#EFF6FF; color:#1B64F2; font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center; }
-    .budget-slider-wrap { display:flex; align-items:center; gap:12px; }
-    .budget-slider { flex:1; -webkit-appearance:none; appearance:none; height:6px; border-radius:3px; background:linear-gradient(to right,#1B64F2 0%,#1B64F2 var(--pct,50%),#E5E7EB var(--pct,50%),#E5E7EB 100%); outline:none; cursor:pointer; }
-    .budget-slider::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#1B64F2; border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.2); cursor:pointer; }
-    .result-card { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:14px; transition:background 100ms; }
-    .result-card:hover { background:#F9FAFB; }
-    .result-card.best { border-color:#1B64F2; background:#EFF6FF; }
-    .result-rank { width:28px; height:28px; border-radius:50%; background:#F3F4F6; color:#6B7280; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .result-rank.gold { background:#FEF3C7; color:#D97706; }
-    .alloc-bar { display:flex; height:10px; border-radius:5px; overflow:hidden; margin-top:8px; width:100%; }
-    .search-row { display:flex; gap:8px; margin-bottom:10px; }
-    /* constraints table */
-    .con-row { display:grid; grid-template-columns:140px 120px 120px 1fr; align-items:center; gap:8px 12px; padding:8px 0; border-bottom:1px solid #F3F4F6; }
-    .con-row:last-child { border-bottom:none; }
-    .con-input { width:100%; border:1px solid var(--border); border-radius:6px; height:34px; padding:0 10px; font-size:13px; font-family:inherit; outline:none; transition:border-color 120ms; }
-    .con-input:focus { border-color:#1B64F2; }
-    .con-chip { display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:12px;
-                background:#EFF6FF; color:#1B64F2; padding:3px 10px 3px 6px; border-radius:6px; }
-    .con-chip__dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+    /* ── Stock picker ────────────────────────────────── */
+    .stock-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+      gap: 7px;
+      margin-bottom: 0;
+    }
+    .stock-card {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 150ms;
+      background: #fff;
+      position: relative;
+      user-select: none;
+    }
+    .stock-card:hover { border-color: #93C5FD; background: #F8FAFF; transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+    .stock-card.selected { border-color: #1B64F2; background: #EFF6FF; }
+    .stock-card__sym   { font-weight: 800; font-size: 12px; color: var(--text-primary); letter-spacing: -0.2px; }
+    .stock-card__name  { font-size: 10px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stock-card__price { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 5px; color: var(--text-primary); }
+    .stock-card__chg   { font-size: 10px; font-weight: 600; margin-top: 1px; }
+    .stock-card__check {
+      position: absolute; top: 6px; right: 6px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #1B64F2; display: none;
+      align-items: center; justify-content: center;
+      color: #fff; font-size: 9px; font-weight: 900;
+    }
+    .stock-card.selected .stock-card__check { display: flex; }
+    .stock-card__avatar {
+      width: 26px; height: 26px; border-radius: 6px;
+      background: #EFF6FF; color: #1B64F2;
+      font-weight: 800; font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 5px;
+    }
+
+    /* ── Budget slider ───────────────────────────────── */
+    .budget-display-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .budget-amount {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .budget-slider-wrap { display: flex; align-items: center; gap: 10px; }
+    .budget-slider {
+      flex: 1;
+      -webkit-appearance: none; appearance: none;
+      height: 5px; border-radius: 3px;
+      background: linear-gradient(to right, #1B64F2 0%, #1B64F2 var(--pct,50%), #E2E8F0 var(--pct,50%), #E2E8F0 100%);
+      outline: none; cursor: pointer;
+    }
+    .budget-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #1B64F2;
+      border: 3px solid #fff;
+      box-shadow: 0 1px 6px rgba(27,100,242,0.3);
+      cursor: pointer;
+    }
+    .budget-range-label { font-size: 11px; color: var(--text-faint); font-weight: 500; }
+    .budget-quick-row {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    /* ── Constraints table ───────────────────────────── */
+    .con-header-row {
+      display: grid;
+      grid-template-columns: 140px 120px 120px 1fr;
+      gap: 6px 10px;
+      padding: 7px 16px 5px;
+      font-size: 10px;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .con-rows-wrap { padding: 0 16px; }
+    .con-row {
+      display: grid;
+      grid-template-columns: 140px 120px 120px 1fr;
+      align-items: center;
+      gap: 6px 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .con-row:last-child { border-bottom: none; }
+    .con-input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      height: 36px;
+      padding: 0 10px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: var(--surface);
+      transition: border-color 120ms;
+      font-variant-numeric: tabular-nums;
+    }
+    .con-input:focus { border-color: #1B64F2; box-shadow: 0 0 0 2px rgba(27,100,242,0.10); }
+    .con-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 700; font-size: 12px;
+      background: #EFF6FF; color: #1B64F2;
+      padding: 4px 10px 4px 8px; border-radius: 6px;
+    }
+    .con-chip__dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+    /* ── Constraint card footer ──────────────────────── */
+    .con-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .con-footer-left { flex: 1; }
+    .con-footer-right { flex: 2; }
+
+    /* ── Result cards ────────────────────────────────── */
+    .result-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: background 100ms, border-color 100ms;
+      margin-bottom: 0;
+    }
+    .result-card:hover { background: #F8FAFC; }
+    .result-card.best  { border-color: #1B64F2; background: #EFF6FF; }
+    .result-rank {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #F1F5F9; color: #64748B;
+      font-size: 11px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .result-rank.gold { background: #FEF3C7; color: #D97706; }
+    .alloc-bar {
+      display: flex;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+      width: 100%;
+    }
+    .results-list-inner {
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 440px;
+      overflow-y: auto;
+    }
+
+    /* ── Search row ──────────────────────────────────── */
+    .search-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .search-row .field-input {
+      flex: 1;
+      height: 38px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 7px;
+    }
+    .search-row .field-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(27,100,242,0.10);
+      outline: none;
+    }
+
+    /* ── Card form bodies ────────────────────────────── */
+    .card-body-pad  { padding: 10px 12px; }
+    .card-body-sm   { padding: 6px 12px; }
+    .btn-sm-inline {
+      height: 32px; padding: 0 12px; font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border-strong); border-radius: 6px;
+      background: var(--surface); color: var(--text-secondary);
+      cursor: pointer; transition: all 120ms; flex-shrink: 0;
+    }
+    .btn-sm-inline:hover { background: var(--surface-alt); }
+
+    /* ── Status line ─────────────────────────────────── */
+    .planner-status {
+      font-size: 13px;
+      min-height: 20px;
+      padding: 4px 0;
+      color: var(--text-muted);
+    }
+    /* ── Alloc bars wrapper ──────────────────────────── */
+    .alloc-bars-wrap {
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    /* ── Step label in card ──────────────────────────── */
+    .step-hint {
+      font-size: 11px;
+      color: var(--text-faint);
+      font-weight: 400;
+    }
+    /* ── Selection count badge ───────────────────────── */
+    .sel-count {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    /* ── Selection hint ──────────────────────────────── */
+    .sel-hint {
+      font-size: 12px;
+      color: #D97706;
+      min-height: 18px;
+      margin-top: 4px;
+    }
+    /* ── btn-icon (small) ────────────────────────────── */
+    .btn-icon-sm {
+      height: 30px; padding: 0 12px; font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface); color: var(--text-secondary);
+      cursor: pointer; transition: all 120ms; flex-shrink: 0;
+    }
+    .btn-icon-sm:hover { background: var(--surface-alt); }
   </style>
 </head>
 <body>
@@ -50,6 +269,7 @@
       <div class="page-panel">
         <div class="panel-content">
 
+          <!-- Page header -->
           <div class="panel-header">
             <div>
               <h1 class="panel-title">🎯 Stock Budget Planner</h1>
@@ -60,40 +280,43 @@
           <!-- STEP 1: Stock Picker -->
           <div class="card">
             <div class="card__header">
-              <h3 class="card__title">Step 1 — Choose Stocks <span style="font-size:11px;color:var(--text-faint);font-weight:400">Select 2–6</span></h3>
-              <span id="planner-selectedCount" style="font-size:12px;color:var(--text-muted);font-weight:600">0 selected</span>
+              <h2 class="card__title">
+                Step 1 — Choose Stocks
+                <span class="step-hint">Select 2–6</span>
+              </h2>
+              <span id="planner-selectedCount" class="sel-count">0 selected</span>
             </div>
-            <div style="padding:12px 16px">
+            <div class="card-body-pad">
               <div class="search-row">
-                <input id="planner-search" type="text" class="field-input" placeholder="Search NSE stocks…"
-                  style="flex:1;height:36px;border:1px solid var(--border);border-radius:6px"
+                <input id="planner-search" type="text" class="field-input"
+                  placeholder="Search NSE stocks…"
                   autocapitalize="characters" spellcheck="false" />
-                <button id="planner-clearSel" class="btn" type="button"
-                  style="height:36px;font-size:12px;border:1px solid var(--border)">Clear</button>
+                <button id="planner-clearSel" class="btn-sm-inline" type="button">Clear Selection</button>
               </div>
               <div id="planner-stockGrid" class="stock-card-grid"></div>
-              <p id="planner-selectionHint" style="font-size:12px;color:#D97706;min-height:18px;margin-top:4px"></p>
+              <p id="planner-selectionHint" class="sel-hint"></p>
             </div>
           </div>
 
           <!-- STEP 2: Budget -->
           <div class="card">
             <div class="card__header">
-              <h3 class="card__title">Step 2 — Set Budget</h3>
+              <h2 class="card__title">Step 2 — Set Budget</h2>
             </div>
-            <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+            <div class="card-body-pad" style="display:flex;flex-direction:column;gap:12px">
               <div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                  <label class="form-label" style="margin:0">Total Budget (INR)</label>
-                  <strong style="font-size:18px;color:#1B64F2" id="planner-budgetDisplay">₹5,00,000</strong>
+                <div class="budget-display-row">
+                  <label class="form-label">Total Budget (INR)</label>
+                  <strong class="budget-amount" id="planner-budgetDisplay">₹5,00,000</strong>
                 </div>
                 <div class="budget-slider-wrap">
-                  <span style="font-size:11px;color:var(--text-faint)">₹10K</span>
-                  <input type="range" id="planner-slider" class="budget-slider" min="10000" max="10000000" step="10000" value="500000" />
-                  <span style="font-size:11px;color:var(--text-faint)">₹1Cr</span>
+                  <span class="budget-range-label">₹10K</span>
+                  <input type="range" id="planner-slider" class="budget-slider"
+                    min="10000" max="10000000" step="10000" value="500000" />
+                  <span class="budget-range-label">₹1Cr</span>
                 </div>
-                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-                  <span style="font-size:11px;color:var(--text-faint);align-self:center">Quick:</span>
+                <div class="budget-quick-row">
+                  <span style="font-size:11px;color:var(--text-faint);font-weight:600">Quick:</span>
                   <button class="quick-ticker" data-budget="100000"  type="button">₹1L</button>
                   <button class="quick-ticker" data-budget="250000"  type="button">₹2.5L</button>
                   <button class="quick-ticker" data-budget="500000"  type="button">₹5L</button>
@@ -104,46 +327,49 @@
             </div>
           </div>
 
-          <!-- STEP 3: Per-stock constraints (rendered dynamically) -->
+          <!-- STEP 3: Per-stock constraints -->
           <div class="card" id="planner-constraintsCard" hidden>
             <div class="card__header">
               <div>
-                <h3 class="card__title">Step 3 — Share Limits
-                  <span style="font-size:11px;color:var(--text-faint);font-weight:400">Optional — leave blank for auto-max</span>
-                </h3>
-                <p style="font-size:12px;color:var(--text-muted);margin-top:4px">
+                <h2 class="card__title">
+                  Step 3 — Share Limits
+                  <span class="step-hint">Optional — leave blank for auto-max</span>
+                </h2>
+                <p class="card__desc">
                   Set <strong>min</strong> (must-have) and <strong>max</strong> (upper limit) shares per stock.
-                  The solver will only return allocations that satisfy all rules.
                 </p>
               </div>
-              <button id="planner-resetConstraints" class="btn" type="button"
-                style="height:28px;font-size:12px;border:1px solid var(--border);flex-shrink:0">↺ Reset</button>
+              <button id="planner-resetConstraints" class="btn-icon-sm" type="button">↺ Reset</button>
             </div>
-            <div style="padding:0 16px">
-              <!-- header row -->
-              <div style="display:grid;grid-template-columns:150px 130px 130px 1fr;gap:8px 12px;padding:8px 0 4px;font-size:10px;color:var(--text-faint);text-transform:uppercase;font-weight:700;letter-spacing:.5px;border-bottom:1px solid var(--border)">
-                <span>Stock</span><span>Min Shares</span><span>Max Shares</span><span></span>
-              </div>
-              <div id="planner-constraintRows"></div>
+
+            <!-- Column headers -->
+            <div class="con-header-row">
+              <span>Stock</span><span>Min Shares</span><span>Max Shares</span><span></span>
             </div>
-            <!-- budget leftover + run -->
-            <div style="padding:14px 16px 16px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:flex-end;margin-top:8px">
-              <div style="flex:1">
-                <label class="form-label" style="margin-bottom:6px;display:block">Max Cash Leftover (₹)</label>
+
+            <!-- Dynamic rows -->
+            <div class="con-rows-wrap" id="planner-constraintRows"></div>
+
+            <!-- Footer: leftover + run button -->
+            <div class="con-footer">
+              <div class="con-footer-left">
+                <label class="form-label" style="margin-bottom:8px;display:block">Max Cash Leftover (₹)</label>
                 <div class="input-with-prefix">
                   <span class="input-prefix">₹</span>
                   <input type="number" id="planner-maxLeftover" class="field-input"
                     min="0" max="100000" step="100" value="500" />
                 </div>
               </div>
-              <button id="planner-runBtn" class="btn btn--primary btn--generate" type="button" style="flex:2">
-                <span style="font-size:16px">▶</span>
-                <span class="btn__text">Find All Allocations</span>
-              </button>
+              <div class="con-footer-right">
+                <button id="planner-runBtn" class="btn btn--primary btn--generate" type="button">
+                  <span style="font-size:16px">▶</span>
+                  <span class="btn__text">Find All Allocations</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Run button shown when constraints card is hidden (no stocks selected yet) -->
+          <!-- Alternate run button (when constraints card hidden) -->
           <div id="planner-runWrap" style="display:none">
             <button id="planner-runBtnAlt" class="btn btn--primary btn--generate" type="button">
               <span style="font-size:16px">▶</span>
@@ -151,25 +377,36 @@
             </button>
           </div>
 
-          <!-- Status -->
-          <div id="planner-status" style="font-size:13px;min-height:20px;padding:4px 0"></div>
+          <!-- Status line -->
+          <div id="planner-status" class="planner-status"></div>
 
           <!-- KPI strip -->
           <div class="kpi-strip" id="planner-kpi" hidden>
-            <div class="kpi-card kpi-card--blue"><div class="kpi-label">Budget</div><div class="kpi-value" id="kpi-budget">—</div></div>
-            <div class="kpi-card kpi-card--green"><div class="kpi-label">Best Invested</div><div class="kpi-value" id="kpi-invested">—</div></div>
-            <div class="kpi-card kpi-card--gray"><div class="kpi-label">Cash Left</div><div class="kpi-value" id="kpi-cash">—</div></div>
-            <div class="kpi-card kpi-card--purple"><div class="kpi-label">Combos Found</div><div class="kpi-value" id="kpi-count">—</div></div>
+            <div class="kpi-card kpi-card--blue">
+              <div class="kpi-label">Budget</div>
+              <div class="kpi-value" id="kpi-budget">—</div>
+            </div>
+            <div class="kpi-card kpi-card--green">
+              <div class="kpi-label">Best Invested</div>
+              <div class="kpi-value" id="kpi-invested">—</div>
+            </div>
+            <div class="kpi-card kpi-card--gray">
+              <div class="kpi-label">Cash Left</div>
+              <div class="kpi-value" id="kpi-cash">—</div>
+            </div>
+            <div class="kpi-card kpi-card--purple">
+              <div class="kpi-label">Combos Found</div>
+              <div class="kpi-value" id="kpi-count">—</div>
+            </div>
           </div>
 
-          <!-- Best allocation bar chart -->
+          <!-- Best allocation visual bar chart -->
           <div class="card" id="planner-allocCard" hidden>
             <div class="card__header">
               <h3 class="card__title">Best Allocation — Visual Breakdown</h3>
-              <button id="planner-exportBtn" class="btn" type="button"
-                style="height:30px;font-size:12px;border:1px solid var(--border)">↓ Export CSV</button>
+              <button id="planner-exportBtn" class="btn-icon-sm" type="button">↓ Export CSV</button>
             </div>
-            <div id="planner-allocBars" style="padding:16px;display:flex;flex-direction:column;gap:12px"></div>
+            <div id="planner-allocBars" class="alloc-bars-wrap"></div>
           </div>
 
           <!-- Results list -->
@@ -178,7 +415,7 @@
               <h3 class="card__title">All Valid Allocations</h3>
               <span id="planner-resultMeta" style="font-size:12px;color:var(--text-faint)"></span>
             </div>
-            <div id="planner-resultsList" style="padding:10px 16px;display:flex;flex-direction:column;gap:6px;max-height:480px;overflow-y:auto"></div>
+            <div id="planner-resultsList" class="results-list-inner"></div>
           </div>
 
           <!-- Empty state -->

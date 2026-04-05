@@ -7,15 +7,17 @@
 const Layout = (() => {
   const NAV = [
     { section: 'Tools' },
-    { id: 'solver',    label: 'Equation Solver',      icon: 'Σ',  href: '/pages/solver.html' },
+    { id: 'solver',    label: 'Equation Solver',      icon: '∑',  href: '/pages/solver.html' },
     { section: 'Market' },
     { id: 'market',    label: 'Live Market',           icon: '📈', href: '/pages/market.html',    badge: 'LIVE' },
     { section: 'Portfolio' },
-    { id: 'planner',   label: 'Stock Budget Planner',  icon: '🎯', href: '/pages/planner.html' },
+    { id: 'planner',   label: 'Budget Planner',        icon: '🎯', href: '/pages/planner.html' },
     { id: 'watchlist', label: 'Watchlist',             icon: '👁', href: '/pages/watchlist.html' },
     { section: 'Analysis' },
     { id: 'history',   label: 'History',               icon: '📋', href: '/pages/history.html' },
     { id: 'compare',   label: 'Compare',               icon: '⚖',  href: '/pages/compare.html' },
+    { section: 'Developer' },
+    { id: 'api-docs',  label: 'API Reference',         icon: '{}', href: '/pages/api-docs.html' },
   ];
 
   function renderSidebar(activePage) {
@@ -38,18 +40,23 @@ const Layout = (() => {
         html += `<div class="nav-section-label">${item.section}</div>`;
         continue;
       }
-      const active   = item.id === activePage ? ' nav-item--active' : '';
+      const isActive = item.id === activePage;
+      const activeClass = isActive ? ' active' : '';
       const badgeHtml = item.badge
-        ? `<span style="margin-left:auto;font-size:9px;background:#DCFCE7;color:#16A34A;padding:1px 5px;border-radius:10px;font-weight:700">${item.badge}</span>`
+        ? `<span class="nav-live-badge">${item.badge}</span>`
         : '';
       html += `
-        <a href="${item.href}" class="nav-item${active}" data-page="${item.id}">
+        <a href="${item.href}" class="nav-item${activeClass}" data-page="${item.id}" aria-current="${isActive ? 'page' : 'false'}">
           <span class="nav-item__icon">${item.icon}</span>
           <span class="nav-item__label">${item.label}</span>
           ${badgeHtml}
         </a>`;
     }
-    html += `</div>`;
+
+    html += `</div>
+      <div class="sidebar__footer">
+        <div class="usage-pill">v2.0 · Integer Solver</div>
+      </div>`;
     return html;
   }
 
@@ -59,7 +66,7 @@ const Layout = (() => {
       <span class="badge badge--engine">Integer-Linear Solver</span>` : '';
     return `
       <div class="topbar__left">
-        <a href="/pages/solver.html" class="topbar__brand" style="text-decoration:none;color:inherit">QuantSolve</a>
+        <a href="/pages/solver.html" class="topbar__brand" style="text-decoration:none">QuantSolve</a>
         <span class="topbar__sep">/</span>
         <span class="topbar__breadcrumb">${breadcrumb}</span>
       </div>
