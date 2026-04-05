@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio Optimizer — QuantSolve</title>
+  <meta name="description" content="Optimize stock portfolio allocations using integer-linear programming. Enter Indian NSE tickers and a budget." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation"></nav>
+
+  <div class="app-main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page-panels">
+      <div class="page-panel">
+        <div class="panel-content">
+
+          <!-- Input card -->
+          <div class="card card--input">
+            <div class="card__header card__header--row">
+              <div>
+                <h1 class="card__title" style="font-size:15px">Build Your Portfolio</h1>
+                <p class="card__desc">Select stocks, set your budget — the solver finds all feasible whole-share allocations.</p>
+              </div>
+            </div>
+            <div class="form-body">
+              <!-- Tickers -->
+              <div class="form-group">
+                <label class="form-label">Stock Tickers <span class="form-label__hint">2–6 tickers</span></label>
+                <div class="ticker-field-wrap" style="position:relative">
+                  <div class="ticker-field" id="tickerField" role="group" aria-label="Stock tickers input">
+                    <span id="tickerTags" aria-live="polite"></span>
+                    <input type="text" id="tickerInput" class="ticker-input"
+                      placeholder="Type NSE ticker + Enter (e.g., RELIANCE)"
+                      autocomplete="off" autocapitalize="characters" spellcheck="false"
+                      aria-label="Add stock ticker" maxlength="12" />
+                  </div>
+                  <div id="tickerDropdown" class="autocomplete-dropdown" hidden></div>
+                </div>
+                <div class="popular-tickers">
+                  <span class="popular-label">Popular:</span>
+                  <button class="quick-ticker" data-ticker="RELIANCE"  type="button">RELIANCE</button>
+                  <button class="quick-ticker" data-ticker="TCS"       type="button">TCS</button>
+                  <button class="quick-ticker" data-ticker="INFY"      type="button">INFY</button>
+                  <button class="quick-ticker" data-ticker="HDFCBANK"  type="button">HDFCBANK</button>
+                  <button class="quick-ticker" data-ticker="ICICIBANK" type="button">ICICIBANK</button>
+                  <button class="quick-ticker" data-ticker="SBIN"      type="button">SBIN</button>
+                </div>
+              </div>
+
+              <!-- Budget -->
+              <div class="form-row">
+                <div class="form-group form-group--flex">
+                  <label class="form-label" for="budgetInput">Budget (INR)</label>
+                  <div class="input-with-prefix">
+                    <span class="input-prefix">₹</span>
+                    <input type="number" id="budgetInput" class="field-input"
+                      min="1" max="99999999" step="1" value="500000"
+                      autocomplete="off" aria-label="Budget in Indian Rupees" />
+                  </div>
+                </div>
+                <div class="form-group form-group--flex">
+                  <label class="form-label" for="maxLeftoverInput">Max Cash Leftover</label>
+                  <div class="input-with-prefix">
+                    <span class="input-prefix">₹</span>
+                    <input type="number" id="maxLeftoverInput" class="field-input"
+                      min="0" max="999999" step="1" value="500"
+                      autocomplete="off" aria-label="Maximum leftover cash" />
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn btn--primary btn--generate" id="generateBtn" type="button">
+                <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                <span class="btn__text">Generate Portfolios</span>
+              </button>
+              <div id="sectorWarning" class="sector-warning" hidden></div>
+            </div>
+          </div>
+
+          <!-- KPI strip -->
+          <div class="kpi-strip" id="kpiStrip" hidden>
+            <div class="kpi-card kpi-card--blue"><div class="kpi-label">Total Budget</div><div class="kpi-value" id="kpiBudget">—</div></div>
+            <div class="kpi-card kpi-card--green"><div class="kpi-label">Best Invested</div><div class="kpi-value" id="kpiInvested">—</div></div>
+            <div class="kpi-card kpi-card--gray"><div class="kpi-label">Min Cash Left</div><div class="kpi-value" id="kpiCash">—</div></div>
+            <div class="kpi-card kpi-card--purple"><div class="kpi-label">Portfolios Found</div><div class="kpi-value" id="kpiCount">—</div></div>
+          </div>
+
+          <!-- Status bar -->
+          <div class="status-bar" role="status" aria-live="polite">
+            <div class="status-bar__main">
+              <span class="status-dot status-dot--idle" id="statusDot" aria-hidden="true"></span>
+              <span class="status-text" id="statusText">Select tickers and a budget to generate portfolios.</span>
+            </div>
+            <div class="status-bar__meta" id="statusMeta" hidden>
+              <span class="status-requestid" id="statusRequestId"></span>
+            </div>
+          </div>
+
+          <!-- Allocation chart -->
+          <div class="card" id="chartCard" hidden>
+            <div class="card__header">
+              <h3 class="card__title">Best Portfolio Allocation</h3>
+              <p class="card__desc" style="margin-top:2px">Based on the top-ranked portfolio by capital efficiency</p>
+            </div>
+            <div id="allocationChart" class="allocation-chart"></div>
+          </div>
+
+          <!-- Results table -->
+          <div class="card card--results" id="resultsCard" hidden>
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Portfolio Candidates</h3>
+                <p class="card__desc" id="tableMetaText" style="margin-top:2px"></p>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn" id="shareBtn" type="button" style="height:32px;font-size:12px;border:1px solid var(--primary-border);color:var(--primary);padding:0 12px">↗ Share</button>
+                <button class="btn" id="exportCsvBtn" type="button" style="height:32px;font-size:12px;border:1px solid var(--border);padding:0 12px">↓ Export CSV</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="portfolio-table" aria-label="Portfolio candidates">
+                <thead id="portfolioThead"></thead>
+                <tbody id="portfolioTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Solver math accordion -->
+          <details class="solver-math" id="solverMath">
+            <summary class="solver-math__toggle">
+              <span class="solver-math__icon">Σ</span>
+              <span class="solver-math__label">Solver Equation <span class="solver-math__sub">(for judges &amp; transparency)</span></span>
+              <span class="solver-math__chevron">›</span>
+            </summary>
+            <div class="solver-math__body">
+              <div class="code-section__label">Equation sent to /solve/v2</div>
+              <pre class="code-block" id="equationDisplay">—</pre>
+              <div class="code-section__label">Constraints</div>
+              <pre class="code-block" id="constraintsDisplay">—</pre>
+              <div class="code-section__label">Variable mapping &amp; prices</div>
+              <pre class="code-block" id="pricesDisplay">—</pre>
+            </div>
+          </details>
+
+          <!-- Empty state -->
+          <div class="empty-state" id="emptyState">
+            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 10h8M8 14h5"/>
+            </svg>
+            <h3 class="empty-state__title">No portfolios yet</h3>
+            <p class="empty-state__desc">Enter 2–6 stock tickers and a budget above, then click <strong>Generate Portfolios</strong>.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../lib/storage.js"></script>
+<script src="../lib/market-client.js"></script>
+<script src="../lib/ticker-list.js"></script>
+<script src="../pages/optimizer.js"></script>
+<script>
+  Layout.init({ page: 'optimizer', breadcrumb: 'Optimizer' });
+  document.addEventListener('DOMContentLoaded', OptimizerPage.init);
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compare Portfolios — QuantSolve</title>
+  <meta name="description" content="Compare two portfolio optimization runs side by side." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation"></nav>
+
+  <div class="app-main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page-panels">
+      <div class="page-panel">
+        <div class="panel-content">
+
+          <div class="panel-header">
+            <div>
+              <h1 class="panel-title">Compare Portfolios</h1>
+              <p class="panel-desc">Select two runs from your history and compare them side-by-side.</p>
+            </div>
+            <button class="btn btn--primary" id="cmp-compareBtn" type="button" style="height:34px;font-size:12px">
+              ⊕ Compare Selected
+            </button>
+          </div>
+
+          <div class="cmp-pickers">
+            <div class="card">
+              <div class="card__header" style="background:var(--primary-light)">
+                <h3 class="card__title" style="color:var(--primary)">Run A</h3>
+              </div>
+              <div id="cmp-picker-a"></div>
+            </div>
+            <div class="card">
+              <div class="card__header" style="background:var(--gain-bg)">
+                <h3 class="card__title" style="color:var(--gain)">Run B</h3>
+              </div>
+              <div id="cmp-picker-b"></div>
+            </div>
+          </div>
+
+          <div class="card" id="cmp-result" hidden>
+            <div class="card__header">
+              <h3 class="card__title">Comparison Results</h3>
+            </div>
+            <div class="table-wrap" id="cmp-table-wrap"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../lib/storage.js"></script>
+<script src="../pages/compare.js"></script>
+<script>
+  Layout.init({ page: 'compare', breadcrumb: 'Compare', showBadge: false });
+  document.addEventListener('DOMContentLoaded', ComparePage.init);
+</script>
+</body>
+</html>

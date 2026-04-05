@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Market — QuantSolve</title>
+  <meta name="description" content="NSE live stock prices, top gainers, losers and sector performance." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation"></nav>
+
+  <div class="app-main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page-panels">
+      <div class="page-panel">
+
+        <!-- Scrolling ticker strip -->
+        <div class="ticker-strip">
+          <div class="ticker-strip__inner" id="mkt-ticker-inner">Loading…</div>
+        </div>
+
+        <div class="panel-content" style="padding-top:12px">
+
+          <div class="panel-header" style="margin-bottom:12px">
+            <div>
+              <h1 class="panel-title">Indian Market</h1>
+              <p class="panel-desc">NSE live prices · Auto-refreshes every 15s</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span class="badge badge--live" id="mkt-sourceBadge"><span class="badge__dot"></span>Loading…</span>
+              <small id="mkt-updated" style="color:var(--text-faint);font-size:11px"></small>
+              <button class="btn" id="mkt-refreshBtn" style="height:32px;font-size:12px;border:1px solid var(--border)">↻ Refresh</button>
+            </div>
+          </div>
+
+          <div id="mkt-closed-banner" style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:13px;color:#92400E;display:flex;align-items:center;gap:8px" hidden>
+            🕐 <strong>NSE is currently closed.</strong> Prices shown are from the last trading session (Mon–Fri 9:15am–3:30pm IST).
+          </div>
+
+          <div class="mkt-indices" id="mkt-indices">Loading…</div>
+
+          <div class="mkt-grid">
+            <div class="card">
+              <div class="card__header">
+                <h3 class="card__title">NSE Live Prices</h3>
+                <span style="font-size:11px;color:var(--text-faint)">20 Large-Cap Stocks</span>
+              </div>
+              <div class="table-wrap">
+                <table class="portfolio-table mkt-table">
+                  <thead><tr>
+                    <th>Stock</th>
+                    <th>Sector</th>
+                    <th class="num">Price (₹)</th>
+                    <th class="num">Change</th>
+                    <th class="num">Volume</th>
+                  </tr></thead>
+                  <tbody id="mkt-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="mkt-side">
+              <div class="card">
+                <div class="card__header" style="background:#F0FDF4">
+                  <h3 class="card__title" style="color:#16A34A">▲ Top Gainers</h3>
+                </div>
+                <div id="mkt-gainers" class="mover-list"></div>
+              </div>
+              <div class="card">
+                <div class="card__header" style="background:#FEF2F2">
+                  <h3 class="card__title" style="color:#DC2626">▼ Top Losers</h3>
+                </div>
+                <div id="mkt-losers" class="mover-list"></div>
+              </div>
+              <div class="card">
+                <div class="card__header">
+                  <h3 class="card__title">Sector Performance</h3>
+                </div>
+                <div id="mkt-sectors" class="sector-bars" style="padding:12px 16px"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../lib/market-client.js"></script>
+<script src="../pages/market.js"></script>
+<script>
+  Layout.init({ page: 'market', breadcrumb: 'Live Market' });
+  document.addEventListener('DOMContentLoaded', MarketPage.init);
+</script>
+</body>
+</html>

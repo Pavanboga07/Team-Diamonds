@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equation Solver — QuantSolve</title>
+  <meta name="description" content="Solve linear Diophantine equations with integer constraints. Supports brackets, BODMAS, multi-variable equations." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation"></nav>
+
+  <div class="app-main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page-panels">
+      <div class="page-panel">
+        <div class="panel-content">
+
+          <div class="panel-header">
+            <div>
+              <h1 class="panel-title">Equation Solver</h1>
+              <p class="panel-desc">Solve any linear Diophantine equation with integer constraints — the engine this product is built on.</p>
+            </div>
+          </div>
+
+          <!-- Input card -->
+          <div class="card">
+            <div class="card__header">
+              <h3 class="card__title">Enter Equation</h3>
+              <span style="font-size:11px;color:var(--text-faint)">Enter to solve</span>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div>
+                <label class="form-label" style="margin-bottom:6px;display:block">Linear equation <span class="form-label__hint">e.g. 3a + 5b + 2c = 60</span></label>
+                <input id="slv-equation" type="text" class="field-input"
+                  placeholder="e.g. 10x + 20y = 100"
+                  style="font-family:ui-monospace,monospace;font-size:15px;letter-spacing:0.5px;border:1px solid var(--border-strong);border-radius:6px;height:44px;padding:0 14px"
+                  spellcheck="false" autocomplete="off" />
+              </div>
+
+              <!-- Constraints -->
+              <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <label class="form-label" style="margin:0">Constraints <span class="form-label__hint">optional</span></label>
+                  <button id="slv-addConstraint" class="btn" type="button"
+                    style="height:28px;font-size:12px;border:1px solid var(--border);padding:0 10px">+ Add</button>
+                </div>
+                <div id="slv-constraintList" style="display:flex;flex-direction:column;gap:6px"></div>
+              </div>
+
+              <!-- Examples -->
+              <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px">
+                <span style="font-size:11px;color:var(--text-faint);align-self:center;font-weight:600">Examples:</span>
+                <button data-example="simple"    class="quick-ticker" type="button">50x = 200</button>
+                <button data-example="twovars"   class="quick-ticker" type="button">10x + 20y = 100</button>
+                <button data-example="brackets"  class="quick-ticker" type="button">(10x+20y)×2 + 5z = 500</button>
+                <button data-example="fivevars"  class="quick-ticker" type="button">5 variables</button>
+                <button data-example="portfolio" class="quick-ticker" type="button">Portfolio (with limits)</button>
+                <button data-example="impossible" class="quick-ticker" type="button">Impossible: 2x+4y=3</button>
+              </div>
+
+              <button id="slv-solveBtn" class="btn btn--primary btn--generate" type="button">
+                <span style="font-size:16px">▶</span>
+                <span class="btn__text">Solve</span>
+              </button>
+
+              <div id="slv-status" style="font-size:13px;min-height:18px"></div>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="slv-results" hidden>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <button id="slv-tabTable" class="slv-tab slv-tab--active" type="button">📋 Table</button>
+              <button id="slv-tabChart" class="slv-tab" type="button">📊 Chart</button>
+            </div>
+            <div id="slv-viewTable">
+              <div class="card">
+                <div class="card__header">
+                  <h3 class="card__title">Solutions</h3>
+                  <span id="slv-meta" style="font-size:12px;color:var(--text-faint)"></span>
+                </div>
+                <div class="table-wrap" style="max-height:400px;overflow-y:auto">
+                  <table id="slv-table" style="width:100%;border-collapse:collapse">
+                    <thead></thead><tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div id="slv-viewChart" hidden>
+              <div class="card">
+                <div class="card__header">
+                  <h3 class="card__title" id="slv-chartTitle">Solution Space</h3>
+                  <span id="slv-chartDesc" style="font-size:11px;color:var(--text-faint)"></span>
+                </div>
+                <div style="padding:16px">
+                  <canvas id="slv-canvas" style="width:100%;border-radius:4px;display:block"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../lib/storage.js"></script>
+<script src="../pages/solver.js"></script>
+<script>
+  Layout.init({ page: 'solver', breadcrumb: 'Equation Solver' });
+  document.addEventListener('DOMContentLoaded', SolverPage.init);
+</script>
+</body>
+</html>

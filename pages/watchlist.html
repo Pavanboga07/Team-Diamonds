@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Watchlist — QuantSolve</title>
+  <meta name="description" content="Track Indian NSE stocks with live prices and add them to the portfolio optimizer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation"></nav>
+
+  <div class="app-main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page-panels">
+      <div class="page-panel">
+        <div class="panel-content">
+
+          <div class="panel-header">
+            <div>
+              <h1 class="panel-title">Watchlist</h1>
+              <p class="panel-desc">Track your favourite stocks with live prices. One click to drop them into the optimizer.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <small id="wl-lastUpdated" style="color:var(--text-faint);font-size:11px"></small>
+              <button class="btn btn--primary" id="wl-optimizeBtn" type="button" style="height:34px;font-size:12px">→ Optimize Selected</button>
+              <button class="btn" id="wl-refreshBtn" type="button" style="height:34px;font-size:12px;border:1px solid var(--border)">↻ Refresh</button>
+            </div>
+          </div>
+
+          <!-- Add ticker -->
+          <div class="card">
+            <div class="card__header"><h3 class="card__title">Add Ticker</h3></div>
+            <div style="padding:14px;display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" id="wl-input" placeholder="e.g. RELIANCE, TCS, INFY"
+                class="field-input" style="flex:1;min-width:160px;border:1px solid var(--border-strong);border-radius:var(--radius-md);height:38px"
+                autocapitalize="characters" spellcheck="false" />
+              <button class="btn btn--primary" id="wl-addBtn" type="button" style="height:38px">Add</button>
+            </div>
+            <div style="padding:0 14px 14px">
+              <div class="popular-tickers">
+                <span class="popular-label">Quick add:</span>
+                <button class="quick-ticker" data-wl-ticker="RELIANCE"  type="button">RELIANCE</button>
+                <button class="quick-ticker" data-wl-ticker="TCS"       type="button">TCS</button>
+                <button class="quick-ticker" data-wl-ticker="INFY"      type="button">INFY</button>
+                <button class="quick-ticker" data-wl-ticker="HDFCBANK"  type="button">HDFCBANK</button>
+                <button class="quick-ticker" data-wl-ticker="ICICIBANK" type="button">ICICIBANK</button>
+                <button class="quick-ticker" data-wl-ticker="SBIN"      type="button">SBIN</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Watchlist table -->
+          <div class="card">
+            <div class="table-wrap">
+              <table class="portfolio-table" id="wl-table">
+                <thead>
+                  <tr>
+                    <th class="col--number"><input type="checkbox" id="wl-selectAll" aria-label="Select all"></th>
+                    <th>Ticker</th>
+                    <th style="text-align:right">Price</th>
+                    <th style="text-align:right">Change</th>
+                    <th>Last Updated</th>
+                    <th style="text-align:right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="wl-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="wl-empty" style="padding:32px">
+              <p class="empty-state__desc">No tickers in your watchlist. Add some above.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../lib/storage.js"></script>
+<script src="../lib/market-client.js"></script>
+<script src="../pages/watchlist.js"></script>
+<script>
+  Layout.init({ page: 'watchlist', breadcrumb: 'Watchlist' });
+  document.addEventListener('DOMContentLoaded', WatchlistPage.init);
+</script>
+</body>
+</html>

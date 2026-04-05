@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Run History — QuantSolve</title>
+  <meta name="description" content="View and re-run past portfolio optimization results." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation"></nav>
+
+  <div class="app-main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page-panels">
+      <div class="page-panel">
+        <div class="panel-content">
+
+          <div class="panel-header">
+            <div>
+              <h1 class="panel-title">Run History</h1>
+              <p class="panel-desc">Every portfolio generation is saved locally. Re-run or compare past results.</p>
+            </div>
+            <button class="btn" id="hist-clearBtn" type="button"
+              style="height:34px;font-size:12px;border:1px solid var(--loss-border);color:var(--loss)">
+              Clear All
+            </button>
+          </div>
+
+          <div id="hist-list"></div>
+
+          <div class="empty-state" id="hist-empty">
+            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+            </svg>
+            <h3 class="empty-state__title">No history yet</h3>
+            <p class="empty-state__desc">Run the optimizer — every result is saved here automatically.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../lib/storage.js"></script>
+<script src="../pages/history.js"></script>
+<script>
+  Layout.init({ page: 'history', breadcrumb: 'Run History', showBadge: false });
+  document.addEventListener('DOMContentLoaded', HistoryPage.init);
+</script>
+</body>
+</html>

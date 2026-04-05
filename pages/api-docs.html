@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Docs — QuantSolve</title>
+  <meta name="description" content="REST API documentation for the QuantSolve integer-linear solver and market data endpoints." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../app.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation"></nav>
+
+  <div class="app-main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page-panels">
+      <div class="page-panel">
+        <div class="panel-content">
+
+          <div class="panel-header">
+            <div>
+              <h1 class="panel-title">API Documentation</h1>
+              <p class="panel-desc">REST API for the QuantSolve Portfolio Engine. Base URL: <code style="font-size:12px;background:#F3F4F6;padding:1px 6px;border-radius:3px">http://localhost:3000</code></p>
+            </div>
+          </div>
+
+          <!-- GET /market/quotes -->
+          <div class="card api-endpoint">
+            <div class="card__header">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="api-method api-method--get">GET</span>
+                <span class="api-path">/market/quotes</span>
+              </div>
+            </div>
+            <div style="padding:16px">
+              <p class="api-desc">Fetch live NSE stock prices for one or more symbols.</p>
+
+              <div class="code-section__label">Parameters</div>
+              <table class="params-table">
+                <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>symbols</code></td><td><code>string</code></td><td>Comma-separated NSE ticker symbols (e.g. <code>RELIANCE,TCS,INFY</code>). Max 6.</td></tr>
+                </tbody>
+              </table>
+
+              <div class="code-section__label">Example response</div>
+              <div class="code-wrap">
+                <button class="copy-btn" type="button">Copy</button>
+                <pre class="code-block">{
+  "ok": true,
+  "source": "live",
+  "data": {
+    "RELIANCE": { "symbol": "RELIANCE", "price": 2948.50, "name": "Reliance Industries", "currency": "INR" },
+    "TCS":      { "symbol": "TCS",      "price": 3812.75, "name": "Tata Consultancy",    "currency": "INR" }
+  }
+}</pre>
+              </div>
+
+              <div class="code-section__label" style="padding-top:12px">Try it</div>
+              <div class="try-it-box">
+                <label for="try-symbols">Symbols (comma-separated)</label>
+                <input type="text" id="try-symbols" value="RELIANCE,TCS,INFY" />
+                <button class="btn btn--primary" style="height:34px;font-size:13px" type="button"
+                  data-endpoint="quotes" class="api-try-btn">▶ Send Request</button>
+                <div class="try-it-result"><pre id="try-result-quotes">—</pre></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- POST /solve/v2 -->
+          <div class="card api-endpoint">
+            <div class="card__header">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="api-method api-method--post">POST</span>
+                <span class="api-path">/solve/v2</span>
+              </div>
+            </div>
+            <div style="padding:16px">
+              <p class="api-desc">Run the integer-linear solver on a budget equation with per-variable constraints.</p>
+
+              <div class="code-section__label">Request body</div>
+              <table class="params-table">
+                <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>equation</code></td><td><code>string</code></td><td>Linear equation. E.g. <code>2948a + 3812b = 500000</code></td></tr>
+                  <tr><td><code>constraints</code></td><td><code>object</code></td><td>Per-variable bounds. E.g. <code>{"a":{"max":50},"b":{"max":30}}</code></td></tr>
+                </tbody>
+              </table>
+
+              <div class="code-section__label">curl</div>
+              <div class="code-wrap">
+                <button class="copy-btn" type="button">Copy</button>
+                <pre class="code-block">curl -X POST http://localhost:3000/solve/v2 \
+  -H "Content-Type: application/json" \
+  -d '{"equation":"2948a + 3812b = 500000","constraints":{"a":{"max":50},"b":{"max":30}}}'</pre>
+              </div>
+
+              <div style="margin-top:12px;font-size:12px"><strong>JavaScript (fetch)</strong></div>
+              <div class="code-wrap">
+                <button class="copy-btn" type="button">Copy</button>
+                <pre class="code-block">const res = await fetch('/solve/v2', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    equation: '2948a + 3812b = 500000',
+    constraints: { a: { max: 50 }, b: { max: 30 } },
+  }),
+});
+const { ok, data } = await res.json();
+// data = [{ a: 42, b: 24 }, ...]</pre>
+              </div>
+
+              <div class="code-section__label" style="padding-top:12px">Try it</div>
+              <div class="try-it-box">
+                <label for="try-equation">Equation</label>
+                <input type="text" id="try-equation" value="2948a + 3812b = 500000" />
+                <label for="try-constraints">Constraints (JSON)</label>
+                <input type="text" id="try-constraints" value='{"a":{"max":50},"b":{"max":30}}' />
+                <button class="btn btn--primary" style="height:34px;font-size:13px" type="button"
+                  data-endpoint="solve" class="api-try-btn">▶ Send Request</button>
+                <div class="try-it-result"><pre id="try-result-solve">—</pre></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../pages/api-docs.js"></script>
+<script>
+  Layout.init({ page: 'api-docs', breadcrumb: 'API Docs', showBadge: false });
+  document.addEventListener('DOMContentLoaded', ApiDocsPage.init);
+</script>
+</body>
+</html>
