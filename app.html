@@ -111,7 +111,7 @@
               <div>
                 <label class="form-label" style="margin-bottom:6px;display:block">Linear equation <span class="form-label__hint">e.g. 3a + 5b + 2c = 60</span></label>
                 <input id="slv-equation" type="text" class="field-input"
-                  placeholder="2a + 3b = 12"
+                  placeholder="e.g. 10x + 20y = 100"
                   style="font-family:ui-monospace,monospace;font-size:15px;letter-spacing:0.5px;border:1px solid var(--border-strong);border-radius:6px;height:44px;padding:0 14px"
                   spellcheck="false" autocomplete="off" />
               </div>
@@ -128,10 +128,13 @@
 
               <!-- Examples -->
               <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px">
-                <span style="font-size:12px;color:var(--text-faint);align-self:center">Examples:</span>
-                <button data-example="simple" class="quick-ticker" type="button">2a + 3b = 12</button>
-                <button data-example="three" class="quick-ticker" type="button">3a + 5b + 7c = 30</button>
-                <button data-example="portfolio" class="quick-ticker" type="button">Portfolio budget</button>
+                <span style="font-size:11px;color:var(--text-faint);align-self:center;font-weight:600">Examples:</span>
+                <button data-example="simple" class="quick-ticker" type="button">50x = 200</button>
+                <button data-example="twovars" class="quick-ticker" type="button">10x + 20y = 100</button>
+                <button data-example="brackets" class="quick-ticker" type="button">(10x+20y)×2 + 5z = 500</button>
+                <button data-example="fivevars" class="quick-ticker" type="button">5 variables</button>
+                <button data-example="portfolio" class="quick-ticker" type="button">Portfolio (with limits)</button>
+                <button data-example="impossible" class="quick-ticker" type="button">Impossible: 2x+4y=3</button>
               </div>
 
               <button id="slv-solveBtn" class="btn btn--primary btn--generate" type="button">
