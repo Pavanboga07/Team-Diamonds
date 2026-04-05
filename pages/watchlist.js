@@ -48,8 +48,13 @@ const WatchlistPage = (() => {
     $.empty.hidden = list.length > 0;
     $.tbody.innerHTML = '';
     list.forEach(({ symbol }) => {
-      const info  = prices[symbol];
-      const price = info?.price;
+      const info   = prices[symbol];
+      const price  = info?.price;
+      const chg    = info?.changePercent;
+      const isUp   = chg > 0, isDown = chg < 0;
+      const chgStr = chg != null
+        ? `<span style="color:${isUp ? '#16A34A' : isDown ? '#DC2626' : '#6B7280'};font-weight:600;font-size:13px">${isUp ? '+' : ''}${chg.toFixed(2)}%</span>`
+        : '<span style="color:var(--text-faint)">—</span>';
       const tr    = document.createElement('tr');
       tr.innerHTML = `
         <td class="col--number"><input type="checkbox" class="wl-check" data-sym="${symbol}" aria-label="Select ${symbol}"></td>
@@ -57,6 +62,7 @@ const WatchlistPage = (() => {
         <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">
           ${price ? Format.usd(price) : '<span style="color:var(--text-faint)">—</span>'}
         </td>
+        <td style="text-align:right">${chgStr}</td>
         <td style="color:var(--text-muted);font-size:12px">${price ? 'Live' : 'Pending…'}</td>
         <td style="text-align:right">
           <button class="btn" style="height:28px;padding:0 10px;font-size:12px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-border)" data-opt="${symbol}">→ Optimize</button>

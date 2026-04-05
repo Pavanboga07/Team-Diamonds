@@ -235,3 +235,69 @@ body { background: #F1F5F9; }
   .nav-item__icon { width: auto; font-size: 18px; }
   .panel-content { padding: 14px 14px 32px; }
 }
+
+/* -- Autocomplete dropdown ---------------------------------- */
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #fff;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 50;
+  overflow: hidden;
+}
+.autocomplete-opt {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; background: none; border: none; cursor: pointer;
+  border-bottom: 1px solid #F3F4F6; text-align: left; font-family: inherit;
+  transition: background 100ms;
+}
+.autocomplete-opt:last-child { border-bottom: none; }
+.autocomplete-opt:hover { background: #F9FAFB; }
+.autocomplete-opt__sym  { font-weight: 700; font-size: 13px; min-width: 52px; }
+.autocomplete-opt__name { font-size: 12px; color: #6B7280; flex: 1; }
+.autocomplete-opt__sector {
+  font-size: 10px; font-weight: 600; padding: 2px 7px;
+  border-radius: 999px; flex-shrink: 0;
+}
+
+/* -- Allocation chart --------------------------------------- */
+.allocation-chart {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 160px;
+}
+.chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.chart-legend__dot {
+  width: 10px; height: 10px;
+  border-radius: 50%; flex-shrink: 0;
+}
+.chart-legend__label { flex: 1; color: #374151; font-weight: 500; }
+.chart-legend__val   { font-weight: 600; color: #111827; font-variant-numeric: tabular-nums; }
+
+/* -- Sector warning ----------------------------------------- */
+.sector-warning {
+  padding: 10px 14px;
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #92400E;
+  margin-top: 4px;
+}

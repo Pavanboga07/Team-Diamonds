@@ -108,12 +108,15 @@
                 <label class="form-label">
                   Stock Tickers <span class="form-label__hint">2–6 tickers</span>
                 </label>
-                <div class="ticker-field" id="tickerField" role="group" aria-label="Stock tickers input">
-                  <span id="tickerTags" aria-live="polite"></span>
-                  <input type="text" id="tickerInput" class="ticker-input"
-                    placeholder="Type ticker + Enter (e.g., AAPL)"
-                    autocomplete="off" autocapitalize="characters" spellcheck="false"
-                    aria-label="Add stock ticker" maxlength="12" />
+                <div class="ticker-field-wrap" style="position:relative">
+                  <div class="ticker-field" id="tickerField" role="group" aria-label="Stock tickers input">
+                    <span id="tickerTags" aria-live="polite"></span>
+                    <input type="text" id="tickerInput" class="ticker-input"
+                      placeholder="Type ticker + Enter (e.g., AAPL)"
+                      autocomplete="off" autocapitalize="characters" spellcheck="false"
+                      aria-label="Add stock ticker" maxlength="12" />
+                  </div>
+                  <div id="tickerDropdown" class="autocomplete-dropdown" hidden></div>
                 </div>
                 <div class="popular-tickers">
                   <span class="popular-label">Popular:</span>
@@ -155,6 +158,9 @@
                 </svg>
                 <span class="btn__text">Generate Portfolios</span>
               </button>
+
+              <!-- Sector warning -->
+              <div id="sectorWarning" class="sector-warning" hidden></div>
             </div>
           </div>
 
@@ -189,6 +195,15 @@
             </div>
           </div>
 
+          <!-- Allocation chart (hidden until results) -->
+          <div class="card" id="chartCard" hidden>
+            <div class="card__header">
+              <h3 class="card__title">Best Portfolio Allocation</h3>
+              <p class="card__desc" style="margin-top:2px">Based on the top-ranked portfolio by capital efficiency</p>
+            </div>
+            <div id="allocationChart" class="allocation-chart"></div>
+          </div>
+
           <!-- Results card -->
           <div class="card card--results" id="resultsCard" hidden>
             <div class="card__header">
@@ -197,6 +212,10 @@
                 <p class="card__desc" id="tableMetaText" style="margin-top:2px"></p>
               </div>
               <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn" id="shareBtn" type="button"
+                  style="height:32px;font-size:12px;border:1px solid var(--primary-border);color:var(--primary);padding:0 12px">
+                  ↗ Share
+                </button>
                 <button class="btn" id="exportCsvBtn" type="button"
                   style="height:32px;font-size:12px;border:1px solid var(--border);padding:0 12px">
                   ↓ Export CSV
@@ -289,6 +308,7 @@
                     <th class="col--number"><input type="checkbox" id="wl-selectAll" aria-label="Select all"></th>
                     <th>Ticker</th>
                     <th style="text-align:right">Price</th>
+                    <th style="text-align:right">Change</th>
                     <th>Last Updated</th>
                     <th style="text-align:right">Actions</th>
                   </tr>
@@ -493,6 +513,7 @@ const { ok, data } = await res.json();
 <script src="lib/storage.js"></script>
 <script src="lib/format.js"></script>
 <script src="lib/market-client.js"></script>
+<script src="lib/ticker-list.js"></script>
 <script src="pages/optimizer.js"></script>
 <script src="pages/watchlist.js"></script>
 <script src="pages/history.js"></script>

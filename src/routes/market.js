@@ -15,22 +15,32 @@ const express = require("express");
 // Static fallback data (always up-to-date enough for a hackathon demo)
 // ---------------------------------------------------------------------------
 const STATIC_QUOTES = {
-  AAPL:  { symbol: "AAPL",  price: 196.89, name: "Apple Inc.",              currency: "USD", source: "static" },
-  MSFT:  { symbol: "MSFT",  price: 421.55, name: "Microsoft Corporation",   currency: "USD", source: "static" },
-  NVDA:  { symbol: "NVDA",  price: 875.40, name: "NVIDIA Corporation",      currency: "USD", source: "static" },
-  GOOGL: { symbol: "GOOGL", price: 162.30, name: "Alphabet Inc.",           currency: "USD", source: "static" },
-  AMZN:  { symbol: "AMZN",  price: 193.60, name: "Amazon.com Inc.",         currency: "USD", source: "static" },
-  TSLA:  { symbol: "TSLA",  price: 251.20, name: "Tesla, Inc.",             currency: "USD", source: "static" },
-  META:  { symbol: "META",  price: 512.75, name: "Meta Platforms Inc.",     currency: "USD", source: "static" },
-  NFLX:  { symbol: "NFLX",  price: 628.90, name: "Netflix Inc.",            currency: "USD", source: "static" },
-  AMD:   { symbol: "AMD",   price: 178.45, name: "Advanced Micro Devices",  currency: "USD", source: "static" },
-  INTC:  { symbol: "INTC",  price: 22.80,  name: "Intel Corporation",       currency: "USD", source: "static" },
-  JPM:   { symbol: "JPM",   price: 235.60, name: "JPMorgan Chase & Co.",    currency: "USD", source: "static" },
-  BAC:   { symbol: "BAC",   price: 41.30,  name: "Bank of America Corp.",   currency: "USD", source: "static" },
-  V:     { symbol: "V",     price: 294.80, name: "Visa Inc.",               currency: "USD", source: "static" },
-  SPY:   { symbol: "SPY",   price: 523.40, name: "SPDR S&P 500 ETF",       currency: "USD", source: "static" },
-  QQQ:   { symbol: "QQQ",   price: 446.90, name: "Invesco QQQ Trust",       currency: "USD", source: "static" },
+  AAPL:  { symbol: "AAPL",  price: 196.89, changePercent:  1.23, name: "Apple Inc.",              sector: "Technology",   currency: "USD", source: "static" },
+  MSFT:  { symbol: "MSFT",  price: 421.55, changePercent:  0.87, name: "Microsoft Corporation",   sector: "Technology",   currency: "USD", source: "static" },
+  NVDA:  { symbol: "NVDA",  price: 875.40, changePercent:  2.41, name: "NVIDIA Corporation",      sector: "Technology",   currency: "USD", source: "static" },
+  GOOGL: { symbol: "GOOGL", price: 162.30, changePercent: -0.34, name: "Alphabet Inc.",           sector: "Technology",   currency: "USD", source: "static" },
+  AMZN:  { symbol: "AMZN",  price: 193.60, changePercent:  1.05, name: "Amazon.com Inc.",         sector: "Consumer",     currency: "USD", source: "static" },
+  TSLA:  { symbol: "TSLA",  price: 251.20, changePercent: -1.78, name: "Tesla, Inc.",             sector: "Automotive",   currency: "USD", source: "static" },
+  META:  { symbol: "META",  price: 512.75, changePercent:  0.62, name: "Meta Platforms Inc.",     sector: "Technology",   currency: "USD", source: "static" },
+  NFLX:  { symbol: "NFLX",  price: 628.90, changePercent:  1.94, name: "Netflix Inc.",            sector: "Entertainment",currency: "USD", source: "static" },
+  AMD:   { symbol: "AMD",   price: 178.45, changePercent: -0.91, name: "Advanced Micro Devices",  sector: "Technology",   currency: "USD", source: "static" },
+  INTC:  { symbol: "INTC",  price: 22.80,  changePercent: -2.15, name: "Intel Corporation",       sector: "Technology",   currency: "USD", source: "static" },
+  JPM:   { symbol: "JPM",   price: 235.60, changePercent:  0.45, name: "JPMorgan Chase & Co.",    sector: "Finance",      currency: "USD", source: "static" },
+  BAC:   { symbol: "BAC",   price: 41.30,  changePercent:  0.22, name: "Bank of America Corp.",   sector: "Finance",      currency: "USD", source: "static" },
+  V:     { symbol: "V",     price: 294.80, changePercent:  0.78, name: "Visa Inc.",               sector: "Finance",      currency: "USD", source: "static" },
+  MA:    { symbol: "MA",    price: 481.20, changePercent:  0.55, name: "Mastercard Inc.",         sector: "Finance",      currency: "USD", source: "static" },
+  SPY:   { symbol: "SPY",   price: 523.40, changePercent:  0.61, name: "SPDR S&P 500 ETF",       sector: "ETF",          currency: "USD", source: "static" },
+  QQQ:   { symbol: "QQQ",   price: 446.90, changePercent:  0.84, name: "Invesco QQQ Trust",       sector: "ETF",          currency: "USD", source: "static" },
+  PYPL:  { symbol: "PYPL",  price: 62.40,  changePercent: -0.67, name: "PayPal Holdings Inc.",    sector: "Finance",      currency: "USD", source: "static" },
+  UBER:  { symbol: "UBER",  price: 71.85,  changePercent:  1.32, name: "Uber Technologies",       sector: "Technology",   currency: "USD", source: "static" },
+  SHOP:  { symbol: "SHOP",  price: 78.90,  changePercent:  2.08, name: "Shopify Inc.",            sector: "Technology",   currency: "USD", source: "static" },
+  COIN:  { symbol: "COIN",  price: 224.60, changePercent:  3.45, name: "Coinbase Global Inc.",    sector: "Finance",      currency: "USD", source: "static" },
+  PLTR:  { symbol: "PLTR",  price: 24.70,  changePercent:  1.67, name: "Palantir Technologies",   sector: "Technology",   currency: "USD", source: "static" },
+  WMT:   { symbol: "WMT",   price: 68.40,  changePercent:  0.31, name: "Walmart Inc.",            sector: "Consumer",     currency: "USD", source: "static" },
+  JNJ:   { symbol: "JNJ",   price: 152.30, changePercent: -0.18, name: "Johnson & Johnson",       sector: "Healthcare",   currency: "USD", source: "static" },
+  DIS:   { symbol: "DIS",   price: 98.70,  changePercent:  0.93, name: "Walt Disney Company",     sector: "Entertainment",currency: "USD", source: "static" },
 };
+
 
 // ---------------------------------------------------------------------------
 // Simple in-memory cache

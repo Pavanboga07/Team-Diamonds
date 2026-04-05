@@ -45,12 +45,16 @@ const OptimizerPage = (() => {
     };
     $.generateBtn.addEventListener('click', generatePortfolios);
     $.tickerInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTicker($.tickerInput.value.trim()); }
+      if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTicker($.tickerInput.value.trim()); closeAutocomplete(); }
+      if (e.key === 'Escape') closeAutocomplete();
     });
+    $.tickerInput.addEventListener('input', () => showAutocomplete($.tickerInput.value));
+    $.tickerInput.addEventListener('blur', () => setTimeout(closeAutocomplete, 150));
     document.querySelectorAll('.quick-ticker[data-ticker]').forEach(btn =>
       btn.addEventListener('click', () => addTicker(btn.dataset.ticker))
     );
     $.exportCsvBtn?.addEventListener('click', exportCSV);
+    document.getElementById('shareBtn')?.addEventListener('click', sharePortfolio);
     setStatus('idle', 'Select tickers and a budget to generate portfolios.');
     $.kpiStrip.hidden    = true;
     $.resultsCard.hidden = true;
@@ -67,6 +71,7 @@ const OptimizerPage = (() => {
     if (selectedTickers.length >= MAX_TICKERS){ setStatus('warn', `Max ${MAX_TICKERS} tickers.`); return; }
     selectedTickers = [...selectedTickers, sym];
     $.tickerInput.value = '';
+    closeAutocomplete();
     renderChips();
   }
 
@@ -90,6 +95,31 @@ const OptimizerPage = (() => {
       else if (selectedTickers.length >= MAX_TICKERS) { btn.classList.remove('is-active'); btn.disabled = true; }
       else                                        { btn.classList.remove('is-active'); btn.disabled = false; }
     });
+  }
+
+  /* ── autocomplete ─────────────────────────────────────────────── */
+  function showAutocomplete(q) {
+    const dropdown = document.getElementById('tickerDropdown');
+    if (!dropdown) return;
+    const results = tickerSearch(q);
+    if (!results.length || !q.trim()) { closeAutocomplete(); return; }
+    dropdown.innerHTML = '';
+    results.forEach(item => {
+      const opt = document.createElement('button');
+      opt.className = 'autocomplete-opt';
+      opt.type = 'button';
+      const color = SECTOR_COLORS[item.sector] || '#6B7280';
+      opt.innerHTML = `
+        <span class="autocomplete-opt__sym" style="color:${color}">${item.symbol}</span>
+        <span class="autocomplete-opt__name">${item.name}</span>
+        <span class="autocomplete-opt__sector" style="background:${color}20;color:${color}">${item.sector}</span>`;
+      opt.addEventListener('mousedown', e => { e.preventDefault(); addTicker(item.symbol); });
+      dropdown.appendChild(opt);
+    });
+    dropdown.hidden = false;
+  }
+  function closeAutocomplete() {
+    const d = document.getElementById('tickerDropdown'); if (d) d.hidden = true;
   }
 
   /* ── status helpers ───────────────────────────────────────────── */
@@ -201,6 +231,82 @@ const OptimizerPage = (() => {
       : `${sorted.length} portfolio${sorted.length !== 1 ? 's' : ''} found`;
     $.resultsCard.hidden = false;
     $.emptyState.hidden  = true;
+    renderChart(tickers, sorted[0], budgetCents);
+    renderSectorWarning(tickers);
+  }
+
+  /* ── donut chart ──────────────────────────────────────────────── */
+  const CHART_COLORS = ['#1B64F2','#16A34A','#D97706','#7C3AED','#DB2777','#EA580C'];
+
+  function renderChart(tickers, bestRow, budgetCents) {
+    const chartEl = document.getElementById('allocationChart');
+    if (!chartEl) return;
+    const cashC = bestRow[CASH_VAR] ?? 0;
+    const slices = tickers.map((t, idx) => ({
+      label: t,
+      value: (bestRow[toVarName(idx)] ?? 0) * (liveQuotes[t]?.price ?? 0),
+      color: CHART_COLORS[idx % CHART_COLORS.length],
+    })).filter(s => s.value > 0);
+    slices.push({ label: 'Cash', value: cashC / 100, color: '#E5E7EB' });
+
+    const total = slices.reduce((s, sl) => s + sl.value, 0);
+    if (total <= 0) { chartEl.parentElement.hidden = true; return; }
+    chartEl.parentElement.hidden = false;
+
+    const cx = 80, cy = 80, rO = 68, rI = 42;
+    let angle = -Math.PI / 2;
+    const paths = slices.map(sl => {
+      const sweep = (sl.value / total) * 2 * Math.PI;
+      const x1 = cx + rO * Math.cos(angle),      y1 = cy + rO * Math.sin(angle);
+      const x2 = cx + rO * Math.cos(angle+sweep), y2 = cy + rO * Math.sin(angle+sweep);
+      const ix1= cx + rI * Math.cos(angle),       iy1= cy + rI * Math.sin(angle);
+      const ix2= cx + rI * Math.cos(angle+sweep),  iy2= cy + rI * Math.sin(angle+sweep);
+      const lg = sweep > Math.PI ? 1 : 0;
+      const d = `M${x1},${y1} A${rO},${rO} 0 ${lg} 1 ${x2},${y2} L${ix2},${iy2} A${rI},${rI} 0 ${lg} 0 ${ix1},${iy1}Z`;
+      angle += sweep;
+      return { d, ...sl };
+    });
+
+    const pctInvested = ((budgetCents - cashC) / budgetCents * 100).toFixed(1);
+    chartEl.innerHTML = `
+      <svg viewBox="0 0 160 160" style="width:160px;height:160px;flex-shrink:0">
+        ${paths.map((p,i) => `<path d="${p.d}" fill="${p.color}" stroke="#fff" stroke-width="1.5"><title>${p.label}: ${Format.usd(p.value)}</title></path>`).join('')}
+        <text x="80" y="74" text-anchor="middle" font-size="14" font-weight="700" fill="#111827" font-family="Inter">${pctInvested}%</text>
+        <text x="80" y="90" text-anchor="middle" font-size="9" fill="#9CA3AF" font-family="Inter">invested</text>
+      </svg>
+      <div class="chart-legend">
+        ${paths.filter(p=>p.label!=='Cash').map(p=>
+          `<div class="chart-legend__item">
+            <span class="chart-legend__dot" style="background:${p.color}"></span>
+            <span class="chart-legend__label">${p.label}</span>
+            <span class="chart-legend__val">${Format.usd(p.value)}</span>
+          </div>`).join('')}
+        <div class="chart-legend__item">
+          <span class="chart-legend__dot" style="background:#E5E7EB"></span>
+          <span class="chart-legend__label">Cash</span>
+          <span class="chart-legend__val">${Format.usd(cashC / 100)}</span>
+        </div>
+      </div>`;
+  }
+
+  /* ── sector concentration warning ────────────────────────────── */
+  function renderSectorWarning(tickers) {
+    const el = document.getElementById('sectorWarning');
+    if (!el) return;
+    const sectors = tickers.map(t => {
+      const found = (typeof TICKER_LIST !== 'undefined' ? TICKER_LIST : []).find(x => x.symbol === t);
+      return found?.sector || 'Other';
+    });
+    const counts = {};
+    sectors.forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+    const domSector = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+    const domPct = Math.round(domSector[1] / tickers.length * 100);
+    if (domPct >= 60) {
+      el.hidden = false;
+      el.textContent = `⚠ Concentration risk: ${domPct}% of your portfolio is ${domSector[0]}. Consider adding tickers from other sectors.`;
+    } else {
+      el.hidden = true;
+    }
   }
 
   /* ── math panel ───────────────────────────────────────────────── */
@@ -235,6 +341,33 @@ const OptimizerPage = (() => {
     a.download = `quantsolve-${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
+  }
+
+  /* ── share portfolio ──────────────────────────────────────────── */
+  function sharePortfolio() {
+    if (!lastRun) return;
+    const { tickers, sorted, budgetCents, source } = lastRun;
+    const best = sorted[0];
+    const cashC = best[CASH_VAR] ?? 0;
+    const invested = (budgetCents - cashC) / 100;
+    const pct = (invested / (budgetCents / 100) * 100).toFixed(1);
+    const lines = [
+      `📊 QuantSolve Portfolio (${source === 'live' ? 'Live prices' : 'Demo prices'})`,
+      `Budget: ${Format.usd(budgetCents / 100)}  |  Invested: ${Format.usd(invested)} (${pct}%)`,
+      '',
+      ...tickers.map((t, idx) => {
+        const shares = best[toVarName(idx)] ?? 0;
+        const val    = shares * (liveQuotes[t]?.price ?? 0);
+        return `${t}: ${shares} share${shares !== 1 ? 's' : ''} ≈ ${Format.usd(val)} @ ${Format.usd(liveQuotes[t]?.price ?? 0)}/share`;
+      }),
+      '',
+      `Cash remaining: ${Format.usd(cashC / 100)}`,
+      `Generated by QuantSolve — ${window.location.origin}`,
+    ];
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      const btn = document.getElementById('shareBtn');
+      if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = '↗ Share', 1800); }
+    }).catch(() => alert(lines.join('\n')));
   }
 
   /* ── main generate flow ───────────────────────────────────────── */
