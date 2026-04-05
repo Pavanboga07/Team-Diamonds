@@ -68,13 +68,6 @@
         <span class="nav-item__label">API Docs</span>
       </a>
     </div>
-
-    <div class="sidebar__footer">
-      <div style="margin-bottom:6px">
-        <span class="usage-pill">🏃 <span id="usageCount">0</span> runs</span>
-      </div>
-      <a href="/landing.html">← Back to Home</a>
-    </div>
   </nav>
 
   <!-- ═══ Main ═══ -->
@@ -83,20 +76,15 @@
     <!-- Top bar -->
     <header class="topbar">
       <div class="topbar__left">
-        <a href="/landing.html" class="topbar__home">QuantSolve</a>
+        <span class="topbar__brand">QuantSolve</span>
         <span class="topbar__sep">/</span>
-        <span class="topbar__breadcrumb" id="topbarBreadcrumb">Portfolio</span>
+        <span class="topbar__breadcrumb" id="topbarBreadcrumb">Solver</span>
       </div>
       <div class="topbar__right">
         <span class="badge badge--live" id="liveBadge">
           <span class="badge__dot"></span>Live Data
         </span>
         <span class="badge badge--engine">Integer-Linear Solver</span>
-        <div style="display:flex;align-items:center;gap:8px;margin-left:8px;padding-left:12px;border-left:1px solid #E5E7EB">
-          <div style="width:28px;height:28px;border-radius:50%;background:#1B64F2;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700" id="userAvatar">?</div>
-          <span style="font-size:13px;font-weight:500;color:#374151" id="userName">—</span>
-          <button id="logoutBtn" style="height:28px;padding:0 10px;border:1px solid #E5E7EB;border-radius:4px;background:#fff;font-size:12px;color:#6B7280;cursor:pointer;font-family:inherit">Sign out</button>
-        </div>
       </div>
     </header>
 
@@ -677,7 +665,6 @@ const { ok, data } = await res.json();
 </div>
 <!-- / app-shell -->
 
-<script src="lib/auth-client.js"></script>
 <script src="lib/storage.js"></script>
 <script src="lib/format.js"></script>
 <script src="lib/market-client.js"></script>

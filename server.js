@@ -5,8 +5,6 @@ const path = require("path");
 const { requestLogging }         = require('./src/middleware/requestLogging');
 const { createSolveRouter }      = require('./src/routes/solve');
 const { createMarketRouter }     = require('./src/routes/market');
-const { createAuthRouter }       = require('./src/routes/auth');
-const { createUserDataRouter }   = require('./src/routes/user-data');
 const { createIndiaMarketRouter }= require('./src/routes/india-market');
 
 const { solveEquation } = require('./engine/engine');
@@ -31,16 +29,14 @@ function createApp() {
 
   app.use(express.json({ limit: "256kb" }));
 
-  // Redirect root → landing page
-  app.get("/", (req, res) => res.redirect("/landing.html"));
+  // Redirect root → app
+  app.get('/', (req, res) => res.redirect('/app.html'));
 
   // Serve all static frontend files (landing.html, app.html, app.css, lib/, pages/, etc.)
   app.use(express.static(path.join(__dirname), {
     index: false, // don't auto-serve index.html; we handle root above
   }));
 
-  app.use(createAuthRouter());
-  app.use(createUserDataRouter());
   app.use(createIndiaMarketRouter());
   app.use(createSolveRouter({ solveEquation }));
   app.use(createMarketRouter());

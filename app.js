@@ -35,37 +35,13 @@ const App = (() => {
     if (location.hash !== `#${page}`) history.replaceState(null, '', `#${page}`);
   }
 
-  function updateUsageCounter() {
-    // usage count comes from history API — refreshed when history page loads
-    const el = document.getElementById('usageCount');
-    if (el) {
-      AuthClient.apiFetch('/user/history').then(resp => {
-        if (resp.ok) el.textContent = resp.data.length;
-      }).catch(() => {});
-    }
-  }
-
-  async function init() {
-    // ── Auth guard ──────────────────────────────────────
-    const user = await AuthClient.requireAuth();
-    if (!user) return; // requireAuth already redirected
-
-    // ── Show user in topbar ─────────────────────────────
-    const avatarEl = document.getElementById('userAvatar');
-    const nameEl   = document.getElementById('userName');
-    if (avatarEl) avatarEl.textContent = user.name.charAt(0).toUpperCase();
-    if (nameEl)   nameEl.textContent   = user.name;
-
-    // ── Logout button ───────────────────────────────────
-    document.getElementById('logoutBtn')?.addEventListener('click', () => AuthClient.logout());
-
+  function init() {
     // ── Nav routing ─────────────────────────────────────
     document.querySelectorAll('.nav-item[data-page]').forEach(el =>
       el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); })
     );
     window.addEventListener('hashchange', () => navigate(hashPage()));
     navigate(hashPage());
-    updateUsageCounter();
   }
 
   return { init, navigate, updateUsageCounter };
