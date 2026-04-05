@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock Budget Planner — QuantSolve</title>
+  <meta name="description" content="Plan how many shares of NSE stocks you can buy within a budget. Powered by integer-linear solving." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../app.css" />
+  <style>
+    .stock-card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; margin-bottom:16px; }
+    .stock-card { border:2px solid var(--border); border-radius:10px; padding:12px; cursor:pointer; transition:all 150ms; background:#fff; position:relative; user-select:none; }
+    .stock-card:hover { border-color:#93C5FD; background:#F8FAFF; }
+    .stock-card.selected { border-color:#1B64F2; background:#EFF6FF; }
+    .stock-card__name { font-size:11px; color:var(--text-muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .stock-card__price { font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:8px; }
+    .stock-card__chg { font-size:11px; font-weight:600; margin-top:3px; }
+    .stock-card__check { position:absolute; top:8px; right:8px; width:18px; height:18px; border-radius:50%; background:#1B64F2; display:none; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:900; }
+    .stock-card.selected .stock-card__check { display:flex; }
+    .stock-card__avatar { width:32px; height:32px; border-radius:7px; background:#EFF6FF; color:#1B64F2; font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center; }
+    .budget-slider-wrap { display:flex; align-items:center; gap:12px; }
+    .budget-slider { flex:1; -webkit-appearance:none; appearance:none; height:6px; border-radius:3px; background:linear-gradient(to right,#1B64F2 0%,#1B64F2 var(--pct,50%),#E5E7EB var(--pct,50%),#E5E7EB 100%); outline:none; cursor:pointer; }
+    .budget-slider::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#1B64F2; border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.2); cursor:pointer; }
+    .result-card { border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:14px; transition:background 100ms; }
+    .result-card:hover { background:#F9FAFB; }
+    .result-card.best { border-color:#1B64F2; background:#EFF6FF; }
+    .result-rank { width:28px; height:28px; border-radius:50%; background:#F3F4F6; color:#6B7280; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .result-rank.gold { background:#FEF3C7; color:#D97706; }
+    .alloc-bar { display:flex; height:10px; border-radius:5px; overflow:hidden; margin-top:8px; width:100%; }
+    .search-row { display:flex; gap:8px; margin-bottom:10px; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar" id="sidebar" aria-label="Main navigation"></nav>
+  <div class="app-main">
+    <header class="topbar" id="topbar"></header>
+    <div class="page-panels">
+      <div class="page-panel">
+        <div class="panel-content">
+
+          <div class="panel-header">
+            <div>
+              <h1 class="panel-title">🎯 Stock Budget Planner</h1>
+              <p class="panel-desc">Pick stocks, set a budget — the integer solver finds every valid whole-share split instantly.</p>
+            </div>
+          </div>
+
+          <!-- STEP 1: Stock Picker -->
+          <div class="card">
+            <div class="card__header">
+              <h3 class="card__title">Step 1 — Choose Stocks <span style="font-size:11px;color:var(--text-faint);font-weight:400">Select 2–6</span></h3>
+              <span id="planner-selectedCount" style="font-size:12px;color:var(--text-muted);font-weight:600">0 selected</span>
+            </div>
+            <div style="padding:12px 16px">
+              <div class="search-row">
+                <input id="planner-search" type="text" class="field-input" placeholder="Search NSE stocks…"
+                  style="flex:1;height:36px;border:1px solid var(--border);border-radius:6px"
+                  autocapitalize="characters" spellcheck="false" />
+                <button id="planner-clearSel" class="btn" type="button"
+                  style="height:36px;font-size:12px;border:1px solid var(--border)">Clear</button>
+              </div>
+              <div id="planner-stockGrid" class="stock-card-grid"></div>
+              <p id="planner-selectionHint" style="font-size:12px;color:#D97706;min-height:18px;margin-top:4px"></p>
+            </div>
+          </div>
+
+          <!-- STEP 2: Budget -->
+          <div class="card">
+            <div class="card__header">
+              <h3 class="card__title">Step 2 — Set Budget</h3>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                  <label class="form-label" style="margin:0">Total Budget (INR)</label>
+                  <strong style="font-size:18px;color:#1B64F2" id="planner-budgetDisplay">₹5,00,000</strong>
+                </div>
+                <div class="budget-slider-wrap">
+                  <span style="font-size:11px;color:var(--text-faint)">₹10K</span>
+                  <input type="range" id="planner-slider" class="budget-slider" min="10000" max="10000000" step="10000" value="500000" />
+                  <span style="font-size:11px;color:var(--text-faint)">₹1Cr</span>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                  <span style="font-size:11px;color:var(--text-faint);align-self:center">Quick:</span>
+                  <button class="quick-ticker" data-budget="100000"  type="button">₹1L</button>
+                  <button class="quick-ticker" data-budget="250000"  type="button">₹2.5L</button>
+                  <button class="quick-ticker" data-budget="500000"  type="button">₹5L</button>
+                  <button class="quick-ticker" data-budget="1000000" type="button">₹10L</button>
+                  <button class="quick-ticker" data-budget="2500000" type="button">₹25L</button>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:flex-end">
+                <div style="flex:1">
+                  <label class="form-label" style="margin-bottom:6px;display:block">Max Cash Leftover</label>
+                  <div class="input-with-prefix">
+                    <span class="input-prefix">₹</span>
+                    <input type="number" id="planner-maxLeftover" class="field-input"
+                      min="0" max="100000" step="100" value="500" />
+                  </div>
+                </div>
+                <button id="planner-runBtn" class="btn btn--primary btn--generate" type="button" style="flex:2">
+                  <span style="font-size:16px">▶</span>
+                  <span class="btn__text">Find All Allocations</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div id="planner-status" style="font-size:13px;min-height:20px;padding:4px 0"></div>
+
+          <!-- KPI strip -->
+          <div class="kpi-strip" id="planner-kpi" hidden>
+            <div class="kpi-card kpi-card--blue"><div class="kpi-label">Budget</div><div class="kpi-value" id="kpi-budget">—</div></div>
+            <div class="kpi-card kpi-card--green"><div class="kpi-label">Best Invested</div><div class="kpi-value" id="kpi-invested">—</div></div>
+            <div class="kpi-card kpi-card--gray"><div class="kpi-label">Cash Left</div><div class="kpi-value" id="kpi-cash">—</div></div>
+            <div class="kpi-card kpi-card--purple"><div class="kpi-label">Combos Found</div><div class="kpi-value" id="kpi-count">—</div></div>
+          </div>
+
+          <!-- Best allocation bar chart -->
+          <div class="card" id="planner-allocCard" hidden>
+            <div class="card__header">
+              <h3 class="card__title">Best Allocation — Visual Breakdown</h3>
+              <button id="planner-exportBtn" class="btn" type="button"
+                style="height:30px;font-size:12px;border:1px solid var(--border)">↓ Export CSV</button>
+            </div>
+            <div id="planner-allocBars" style="padding:16px;display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+
+          <!-- Results list -->
+          <div class="card" id="planner-resultsCard" hidden>
+            <div class="card__header">
+              <h3 class="card__title">All Valid Allocations</h3>
+              <span id="planner-resultMeta" style="font-size:12px;color:var(--text-faint)"></span>
+            </div>
+            <div id="planner-resultsList" style="padding:10px 16px;display:flex;flex-direction:column;gap:6px;max-height:480px;overflow-y:auto"></div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="empty-state" id="planner-empty">
+            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>
+            </svg>
+            <h3 class="empty-state__title">Select stocks and a budget</h3>
+            <p class="empty-state__desc">Pick 2–6 NSE stocks above, set your budget, then click <strong>Find All Allocations</strong>.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../lib/storage.js"></script>
+<script src="../lib/market-client.js"></script>
+<script src="../lib/ticker-list.js"></script>
+<script src="../pages/history.js"></script>
+<script src="../pages/planner.js"></script>
+<script>
+  Layout.init({ page: 'planner', breadcrumb: 'Stock Budget Planner' });
+  document.addEventListener('DOMContentLoaded', PlannerPage.init);
+</script>
+</body>
+</html>
