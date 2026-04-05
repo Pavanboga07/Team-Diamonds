@@ -3,13 +3,14 @@
 
 const App = (() => {
   const PAGES = {
-    optimizer: { label: 'Portfolio',  initialized: false, init: () => OptimizerPage.init() },
-    watchlist: { label: 'Watchlist',  initialized: false, init: () => WatchlistPage.init() },
-    history:   { label: 'History',    initialized: false, init: () => HistoryPage.init() },
-    compare:   { label: 'Compare',    initialized: false, init: () => ComparePage.init() },
-    'api-docs':{ label: 'API Docs',   initialized: false, init: () => ApiDocsPage.init() },
+    market:    { label: 'Market',    initialized: false, init: () => MarketPage.init() },
+    optimizer: { label: 'Portfolio', initialized: false, init: () => OptimizerPage.init() },
+    watchlist: { label: 'Watchlist', initialized: false, init: () => WatchlistPage.init() },
+    history:   { label: 'History',   initialized: false, init: () => HistoryPage.init() },
+    compare:   { label: 'Compare',   initialized: false, init: () => ComparePage.init() },
+    'api-docs':{ label: 'API Docs',  initialized: false, init: () => ApiDocsPage.init() },
   };
-  const DEFAULT = 'optimizer';
+  const DEFAULT = 'market';
 
   function hashPage() {
     const h = location.hash.slice(1);

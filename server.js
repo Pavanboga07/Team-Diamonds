@@ -2,11 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-const { requestLogging }       = require('./src/middleware/requestLogging');
-const { createSolveRouter }    = require('./src/routes/solve');
-const { createMarketRouter }   = require('./src/routes/market');
-const { createAuthRouter }     = require('./src/routes/auth');
-const { createUserDataRouter } = require('./src/routes/user-data');
+const { requestLogging }         = require('./src/middleware/requestLogging');
+const { createSolveRouter }      = require('./src/routes/solve');
+const { createMarketRouter }     = require('./src/routes/market');
+const { createAuthRouter }       = require('./src/routes/auth');
+const { createUserDataRouter }   = require('./src/routes/user-data');
+const { createIndiaMarketRouter }= require('./src/routes/india-market');
 
 const { solveEquation } = require('./engine/engine');
 
@@ -40,6 +41,7 @@ function createApp() {
 
   app.use(createAuthRouter());
   app.use(createUserDataRouter());
+  app.use(createIndiaMarketRouter());
   app.use(createSolveRouter({ solveEquation }));
   app.use(createMarketRouter());
 
