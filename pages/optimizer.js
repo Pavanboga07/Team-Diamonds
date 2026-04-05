@@ -334,8 +334,12 @@ const OptimizerPage = (() => {
       bestPct:     budgetCents > 0 ? +((budgetCents - bestCash) / budgetCents * 100).toFixed(1) : 0,
       portfolios:  sorted,
     };
+    // persist to server (per-user DB) + local copy for compare page
+    AuthClient.apiFetch('/user/history', {
+      method: 'POST',
+      body: JSON.stringify(run),
+    }).then(() => App.updateUsageCounter()).catch(() => {});
     Storage.history.save(run);
-    App.updateUsageCounter();
   }
 
   /* ── public API ───────────────────────────────────────────────── */

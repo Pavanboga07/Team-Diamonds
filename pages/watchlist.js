@@ -1,5 +1,5 @@
 'use strict';
-/* pages/watchlist.js — Watchlist feature */
+/* pages/watchlist.js — Watchlist (API-backed) */
 
 const WatchlistPage = (() => {
   const REFRESH_MS = 30000;
@@ -23,34 +23,31 @@ const WatchlistPage = (() => {
     document.querySelectorAll('.quick-ticker[data-wl-ticker]').forEach(btn =>
       btn.addEventListener('click', () => addTickerSym(btn.dataset.wlTicker))
     );
-    render();
-    refresh();
+    load();
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(refresh, REFRESH_MS);
   }
 
-  function addTicker() {
-    addTickerSym($.input?.value ?? '');
-    if ($.input) $.input.value = '';
+  async function load() {
+    const resp = await AuthClient.apiFetch('/user/watchlist').catch(() => null);
+    const list = resp?.data ?? [];
+    renderRows(list, {});
+    if (list.length) fetchPrices(list.map(i => i.symbol));
   }
 
-  function addTickerSym(raw) {
-    const sym = raw.toUpperCase().trim().replace(/[^A-Z0-9.\-]/g, '');
-    if (!sym || sym.length > 10) return;
-    Storage.watchlist.add(sym);
-    render();
-    refresh();
+  async function fetchPrices(symbols) {
+    try {
+      const resp = await MarketClient.fetchQuotes(symbols);
+      const list = (await AuthClient.apiFetch('/user/watchlist').catch(() => null))?.data ?? [];
+      renderRows(list, resp.data ?? {});
+      if ($.lastUpdated) $.lastUpdated.textContent = `Updated ${Format.timeago(Date.now())}`;
+    } catch {}
   }
 
-  function removeTicker(sym) { Storage.watchlist.remove(sym); render(); }
-
-  function render(prices = {}) {
-    const list = Storage.watchlist.get();
-    $.empty.hidden  = list.length > 0;
+  function renderRows(list, prices) {
+    $.empty.hidden = list.length > 0;
     $.tbody.innerHTML = '';
-    if (!list.length) return;
-
-    list.forEach(({ symbol, addedAt }) => {
+    list.forEach(({ symbol }) => {
       const info  = prices[symbol];
       const price = info?.price;
       const tr    = document.createElement('tr');
@@ -60,30 +57,46 @@ const WatchlistPage = (() => {
         <td style="text-align:right;font-variant-numeric:tabular-nums;font-weight:600">
           ${price ? Format.usd(price) : '<span style="color:var(--text-faint)">—</span>'}
         </td>
-        <td style="color:var(--text-muted);font-size:12px">${price ? 'Just now' : 'Pending…'}</td>
+        <td style="color:var(--text-muted);font-size:12px">${price ? 'Live' : 'Pending…'}</td>
         <td style="text-align:right">
-          <button class="btn" style="height:28px;padding:0 10px;font-size:12px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-border)" data-opt-ticker="${symbol}">→ Optimize</button>
-          <button class="btn" style="height:28px;padding:0 10px;font-size:12px;border:1px solid var(--border);margin-left:4px" data-rm-ticker="${symbol}">✕</button>
+          <button class="btn" style="height:28px;padding:0 10px;font-size:12px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-border)" data-opt="${symbol}">→ Optimize</button>
+          <button class="btn" style="height:28px;padding:0 10px;font-size:12px;border:1px solid var(--border);margin-left:4px" data-rm="${symbol}">✕</button>
         </td>`;
-      tr.querySelector(`[data-rm-ticker]`).addEventListener('click', () => removeTicker(symbol));
-      tr.querySelector(`[data-opt-ticker]`).addEventListener('click', () => {
-        OptimizerPage.loadParams({ tickers: [symbol], budget: null, maxLeftover: null });
+      tr.querySelector(`[data-rm]`).addEventListener('click', () => removeTicker(symbol));
+      tr.querySelector(`[data-opt]`).addEventListener('click', () => {
+        OptimizerPage.loadParams({ tickers: [symbol] });
         App.navigate('optimizer');
       });
       $.tbody.appendChild(tr);
     });
   }
 
+  function addTicker() {
+    addTickerSym($.input?.value ?? '');
+    if ($.input) $.input.value = '';
+  }
+
+  async function addTickerSym(raw) {
+    const sym = raw.toUpperCase().trim().replace(/[^A-Z0-9.\-]/g, '');
+    if (!sym || sym.length > 10) return;
+    await AuthClient.apiFetch('/user/watchlist', {
+      method: 'POST',
+      body: JSON.stringify({ symbol: sym }),
+    });
+    load();
+  }
+
+  async function removeTicker(sym) {
+    await AuthClient.apiFetch(`/user/watchlist/${sym}`, { method: 'DELETE' });
+    load();
+  }
+
   async function refresh() {
-    const list = Storage.watchlist.get();
-    if (!list.length) return;
     $.refreshBtn.textContent = '↻ Refreshing…';
     $.refreshBtn.disabled    = true;
-    try {
-      const resp   = await MarketClient.fetchQuotes(list.map(i => i.symbol));
-      render(resp.data);
-      if ($.lastUpdated) $.lastUpdated.textContent = `Updated ${Format.timeago(Date.now())}`;
-    } catch { /* silently fail */ }
+    const resp = await AuthClient.apiFetch('/user/watchlist').catch(() => null);
+    const list = resp?.data ?? [];
+    if (list.length) await fetchPrices(list.map(i => i.symbol));
     $.refreshBtn.textContent = '↻ Refresh';
     $.refreshBtn.disabled    = false;
   }
@@ -91,7 +104,7 @@ const WatchlistPage = (() => {
   function optimizeSelected() {
     const checked = [...document.querySelectorAll('.wl-check:checked')].map(el => el.dataset.sym);
     if (!checked.length) { alert('Select at least one ticker.'); return; }
-    OptimizerPage.loadParams({ tickers: checked.slice(0, 6), budget: null, maxLeftover: null });
+    OptimizerPage.loadParams({ tickers: checked.slice(0, 6) });
     App.navigate('optimizer');
   }
 

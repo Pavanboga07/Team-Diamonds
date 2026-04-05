@@ -2,11 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-const { requestLogging } = require("./src/middleware/requestLogging");
-const { createSolveRouter } = require("./src/routes/solve");
-const { createMarketRouter } = require("./src/routes/market");
+const { requestLogging }       = require('./src/middleware/requestLogging');
+const { createSolveRouter }    = require('./src/routes/solve');
+const { createMarketRouter }   = require('./src/routes/market');
+const { createAuthRouter }     = require('./src/routes/auth');
+const { createUserDataRouter } = require('./src/routes/user-data');
 
-const { solveEquation } = require("./engine/engine");
+const { solveEquation } = require('./engine/engine');
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
@@ -36,6 +38,8 @@ function createApp() {
     index: false, // don't auto-serve index.html; we handle root above
   }));
 
+  app.use(createAuthRouter());
+  app.use(createUserDataRouter());
   app.use(createSolveRouter({ solveEquation }));
   app.use(createMarketRouter());
 

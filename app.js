@@ -1,5 +1,5 @@
 'use strict';
-/* app.js — SaaS dashboard hash router */
+/* app.js — SaaS dashboard router + auth guard */
 
 const App = (() => {
   const PAGES = {
@@ -18,20 +18,14 @@ const App = (() => {
 
   function navigate(page) {
     if (!PAGES[page]) page = DEFAULT;
-
-    // nav highlight
     document.querySelectorAll('.nav-item[data-page]').forEach(el =>
       el.classList.toggle('active', el.dataset.page === page)
     );
-    // show panel
     document.querySelectorAll('.page-panel').forEach(el =>
       el.classList.toggle('hidden', el.id !== `panel-${page}`)
     );
-    // breadcrumb
     const bc = document.getElementById('topbarBreadcrumb');
     if (bc) bc.textContent = PAGES[page].label;
-
-    // lazy init
     if (!PAGES[page].initialized) {
       PAGES[page].init();
       PAGES[page].initialized = true;
@@ -40,11 +34,30 @@ const App = (() => {
   }
 
   function updateUsageCounter() {
+    // usage count comes from history API — refreshed when history page loads
     const el = document.getElementById('usageCount');
-    if (el) el.textContent = Storage.history.getAll().length;
+    if (el) {
+      AuthClient.apiFetch('/user/history').then(resp => {
+        if (resp.ok) el.textContent = resp.data.length;
+      }).catch(() => {});
+    }
   }
 
-  function init() {
+  async function init() {
+    // ── Auth guard ──────────────────────────────────────
+    const user = await AuthClient.requireAuth();
+    if (!user) return; // requireAuth already redirected
+
+    // ── Show user in topbar ─────────────────────────────
+    const avatarEl = document.getElementById('userAvatar');
+    const nameEl   = document.getElementById('userName');
+    if (avatarEl) avatarEl.textContent = user.name.charAt(0).toUpperCase();
+    if (nameEl)   nameEl.textContent   = user.name;
+
+    // ── Logout button ───────────────────────────────────
+    document.getElementById('logoutBtn')?.addEventListener('click', () => AuthClient.logout());
+
+    // ── Nav routing ─────────────────────────────────────
     document.querySelectorAll('.nav-item[data-page]').forEach(el =>
       el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); })
     );
