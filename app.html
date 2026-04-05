@@ -269,7 +269,7 @@
                   <div class="ticker-field" id="tickerField" role="group" aria-label="Stock tickers input">
                     <span id="tickerTags" aria-live="polite"></span>
                     <input type="text" id="tickerInput" class="ticker-input"
-                      placeholder="Type ticker + Enter (e.g., AAPL)"
+                      placeholder="Type NSE ticker + Enter (e.g., RELIANCE)"
                       autocomplete="off" autocapitalize="characters" spellcheck="false"
                       aria-label="Add stock ticker" maxlength="12" />
                   </div>
@@ -277,32 +277,32 @@
                 </div>
                 <div class="popular-tickers">
                   <span class="popular-label">Popular:</span>
-                  <button class="quick-ticker" data-ticker="AAPL" type="button">AAPL</button>
-                  <button class="quick-ticker" data-ticker="MSFT" type="button">MSFT</button>
-                  <button class="quick-ticker" data-ticker="NVDA" type="button">NVDA</button>
-                  <button class="quick-ticker" data-ticker="GOOGL" type="button">GOOGL</button>
-                  <button class="quick-ticker" data-ticker="AMZN" type="button">AMZN</button>
-                  <button class="quick-ticker" data-ticker="TSLA" type="button">TSLA</button>
+                  <button class="quick-ticker" data-ticker="RELIANCE" type="button">RELIANCE</button>
+                  <button class="quick-ticker" data-ticker="TCS" type="button">TCS</button>
+                  <button class="quick-ticker" data-ticker="INFY" type="button">INFY</button>
+                  <button class="quick-ticker" data-ticker="HDFCBANK" type="button">HDFCBANK</button>
+                  <button class="quick-ticker" data-ticker="ICICIBANK" type="button">ICICIBANK</button>
+                  <button class="quick-ticker" data-ticker="SBIN" type="button">SBIN</button>
                 </div>
               </div>
 
               <!-- Budget + Leftover -->
               <div class="form-row">
                 <div class="form-group form-group--flex">
-                  <label class="form-label" for="budgetInput">Budget (USD)</label>
+                  <label class="form-label" for="budgetInput">Budget (INR)</label>
                   <div class="input-with-prefix">
-                    <span class="input-prefix">$</span>
+                    <span class="input-prefix">₹</span>
                     <input type="number" id="budgetInput" class="field-input"
-                      min="1" max="999999" step="1" value="5000"
-                      autocomplete="off" aria-label="Budget in US dollars" />
+                      min="1" max="99999999" step="1" value="500000"
+                      autocomplete="off" aria-label="Budget in Indian Rupees" />
                   </div>
                 </div>
                 <div class="form-group form-group--flex">
                   <label class="form-label" for="maxLeftoverInput">Max Cash Leftover</label>
                   <div class="input-with-prefix">
-                    <span class="input-prefix">$</span>
+                    <span class="input-prefix">₹</span>
                     <input type="number" id="maxLeftoverInput" class="field-input"
-                      min="0" max="50000" step="1" value="50"
+                      min="0" max="999999" step="1" value="500"
                       autocomplete="off" aria-label="Maximum leftover cash in USD" />
                   </div>
                 </div>
@@ -438,7 +438,7 @@
           <div class="card">
             <div class="card__header"><h3 class="card__title">Add Ticker</h3></div>
             <div style="padding:14px;display:flex;gap:8px;flex-wrap:wrap">
-              <input type="text" id="wl-input" placeholder="e.g. AAPL, AMD, TSLA"
+              <input type="text" id="wl-input" placeholder="e.g. RELIANCE, TCS, INFY"
                 class="field-input" style="flex:1;min-width:160px;border:1px solid var(--border-strong);border-radius:var(--radius-md);height:38px"
                 autocapitalize="characters" spellcheck="false" />
               <button class="btn btn--primary" id="wl-addBtn" type="button" style="height:38px">Add</button>
@@ -446,12 +446,12 @@
             <div style="padding:0 14px 14px">
               <div class="popular-tickers">
                 <span class="popular-label">Quick add:</span>
-                <button class="quick-ticker" data-wl-ticker="AAPL" type="button">AAPL</button>
-                <button class="quick-ticker" data-wl-ticker="MSFT" type="button">MSFT</button>
-                <button class="quick-ticker" data-wl-ticker="NVDA" type="button">NVDA</button>
-                <button class="quick-ticker" data-wl-ticker="GOOGL" type="button">GOOGL</button>
-                <button class="quick-ticker" data-wl-ticker="AMZN" type="button">AMZN</button>
-                <button class="quick-ticker" data-wl-ticker="AMD" type="button">AMD</button>
+                <button class="quick-ticker" data-wl-ticker="RELIANCE" type="button">RELIANCE</button>
+                <button class="quick-ticker" data-wl-ticker="TCS" type="button">TCS</button>
+                <button class="quick-ticker" data-wl-ticker="INFY" type="button">INFY</button>
+                <button class="quick-ticker" data-wl-ticker="HDFCBANK" type="button">HDFCBANK</button>
+                <button class="quick-ticker" data-wl-ticker="ICICIBANK" type="button">ICICIBANK</button>
+                <button class="quick-ticker" data-wl-ticker="SBIN" type="button">SBIN</button>
               </div>
             </div>
           </div>

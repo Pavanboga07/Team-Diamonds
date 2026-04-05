@@ -44,7 +44,7 @@ const App = (() => {
     navigate(hashPage());
   }
 
-  return { init, navigate, updateUsageCounter };
+  return { init, navigate };
 })();
 
 document.addEventListener('DOMContentLoaded', App.init);
