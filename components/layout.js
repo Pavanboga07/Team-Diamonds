@@ -14,6 +14,7 @@ const Layout = (() => {
     { id: 'planner',   label: 'Budget Planner',        icon: '🎯', href: '/pages/planner.html' },
     { id: 'watchlist', label: 'Watchlist',             icon: '👁', href: '/pages/watchlist.html' },
     { section: 'Analysis' },
+    { id: 'risk',      label: 'Risk Analysis',          icon: '📊', href: '/pages/risk.html',  badge: 'NEW' },
     { id: 'history',   label: 'History',               icon: '📋', href: '/pages/history.html' },
     { id: 'compare',   label: 'Compare',               icon: '⚖',  href: '/pages/compare.html' },
     { section: 'Developer' },

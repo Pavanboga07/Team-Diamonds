@@ -7,6 +7,8 @@ const { requestLogging }          = require('./src/middleware/requestLogging');
 const { createSolveRouter }       = require('./src/routes/solve');
 const { createMarketRouter }      = require('./src/routes/market');
 const { createIndiaMarketRouter } = require('./src/routes/india-market');
+const { createRiskRouter }        = require('./src/routes/risk');
+const { createHistoryRouter }     = require('./src/routes/history');
 const { solveEquation, solveSystem } = require('./engine');   // WASM shim (falls back to JS)
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -32,6 +34,8 @@ function createApp() {
 
   // API routes
   app.use(createIndiaMarketRouter());
+  app.use(createRiskRouter());
+  app.use(createHistoryRouter());
   app.use(createSolveRouter({ solveEquation, solveSystem }));
   app.use(createMarketRouter());
 

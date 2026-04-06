@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Risk Analysis — QuantSolve</title>
+  <meta name="description" content="Professional portfolio risk analysis — real volatility, beta, VaR, Max Drawdown, Sortino, correlation matrix from 1 year of live market data."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../style.css"/>
+  <link rel="stylesheet" href="../app.css"/>
+<style>
+/* chip grid */
+.rsk-chip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.rsk-chip{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;cursor:pointer;user-select:none;transition:all 140ms;font-size:12px;font-weight:700;color:var(--text-secondary)}
+.rsk-chip:hover{border-color:#93C5FD;background:#F8FAFF}
+.rsk-chip.sel{border-color:#1B64F2;background:#EFF6FF;color:#1B64F2}
+.rsk-chip__sec{font-size:9px;font-weight:600;color:var(--text-faint);margin-top:1px}
+.rsk-chip__chk{margin-left:auto;font-size:11px;opacity:0;transition:opacity 120ms}
+.rsk-chip.sel .rsk-chip__chk{opacity:1}
+/* budget */
+.rsk-bamt{font-size:22px;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums;min-width:110px}
+/* kpi */
+.rsk-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:700px){.rsk-kpi{grid-template-columns:repeat(2,1fr)}}
+/* two-col grid */
+.rsk-grid{display:grid;grid-template-columns:320px 1fr;gap:10px;align-items:start}
+@media(max-width:900px){.rsk-grid{grid-template-columns:1fr}}
+/* gauge */
+.rsk-gw{display:flex;flex-direction:column;align-items:center;padding:16px 10px 8px}
+.rsk-gauge{position:relative;width:160px;height:88px}
+.rsk-gauge svg{width:100%;height:100%}
+.rsk-gscore{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:28px;font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.rsk-glabel{margin-top:4px;font-size:13px;font-weight:700;padding:3px 14px;border-radius:999px}
+/* metrics 2x3 */
+.rsk-met6{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px}
+.rsk-met{background:var(--surface-alt);border-radius:8px;padding:7px 10px}
+.rsk-met__l{font-size:9px;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.rsk-met__v{font-size:15px;font-weight:800;color:var(--text-primary);font-variant-numeric:tabular-nums}
+.rsk-met__s{font-size:9px;color:var(--text-muted);margin-top:1px}
+/* risk badge */
+.rbadge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.rbadge--low{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0}
+.rbadge--medium{background:#FFFBEB;color:#D97706;border:1px solid #FDE68A}
+.rbadge--high{background:#FEF2F2;color:#DC2626;border:1px solid #FECACA}
+/* alerts */
+.rsk-alerts{display:flex;flex-direction:column;gap:5px;padding:8px 12px}
+.rsk-al{display:flex;align-items:flex-start;gap:8px;padding:6px 10px;border-radius:7px;font-size:11.5px;line-height:1.45;border:1px solid transparent}
+.rsk-al--high{background:#FEF2F2;border-color:#FECACA;color:#991B1B}
+.rsk-al--medium{background:#FFFBEB;border-color:#FDE68A;color:#92400E}
+.rsk-al--info{background:#EFF6FF;border-color:#BFDBFE;color:#1E40AF}
+/* sector bars */
+.rsk-secbars{display:flex;flex-direction:column;gap:5px;padding:8px 12px}
+.rsk-secrow{display:flex;align-items:center;gap:8px;font-size:11px}
+.rsk-secname{width:78px;flex-shrink:0;font-weight:600;color:var(--text-secondary)}
+.rsk-sectrack{flex:1;height:5px;background:#F1F5F9;border-radius:999px;overflow:hidden}
+.rsk-secfill{height:100%;border-radius:999px;transition:width .5s ease}
+.rsk-secpct{width:32px;text-align:right;font-weight:700;color:var(--text-primary);font-size:10px}
+/* scatter */
+.scatter-wrap{position:relative;padding:12px}
+.scatter-c{width:100%;border-radius:8px;display:block;background:#FAFCFF;border:1px solid var(--border)}
+.scatter-tt{position:absolute;pointer-events:none;display:none;background:#0F172A;color:#fff;border-radius:8px;padding:8px 12px;font-size:11.5px;line-height:1.6;box-shadow:0 8px 24px rgba(15,23,42,.25);min-width:165px;max-width:230px;z-index:20}
+/* chart canvases */
+.chart-c{width:100%;border-radius:8px;display:block;border:1px solid var(--border);background:#FAFCFF}
+/* corr heatmap */
+.corr-wrap{padding:12px;overflow-x:auto}
+.corr-c{display:block;border-radius:8px}
+/* alloc table */
+.rsk-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.rsk-tbl th{background:#F8FAFC;padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748B;border-bottom:1px solid #E2E8F0;text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
+.rsk-tbl th:hover,.rsk-tbl th.sorted{color:#1B64F2}
+.rsk-tbl td{padding:6px 12px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
+.rsk-tbl tr:hover td{background:#F8FAFC}
+.rsk-tbl tr.best td{background:#EFF6FF}
+.achips{display:flex;flex-wrap:wrap;gap:3px}
+.achip{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;background:#F1F5F9;color:#334155}
+/* loading spinner */
+.spin-wrap{display:flex;align-items:center;gap:10px;padding:20px;color:var(--text-muted);font-size:13px}
+.spinner{width:18px;height:18px;border:2px solid #E2E8F0;border-top-color:#1B64F2;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* chart legend */
+.chart-legend{display:flex;gap:16px;padding:0 12px 8px;flex-wrap:wrap}
+.cleg-item{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text-secondary)}
+.cleg-line{width:20px;height:2.5px;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="app-main" data-page="risk">
+    <div class="page-panels">
+      <div id="panel-risk" class="page-panel">
+        <div class="panel-content">
+
+          <!-- Header -->
+          <div class="panel-header">
+            <div>
+              <h1 class="panel-title">📊 Risk Analysis <span style="font-size:12px;font-weight:500;color:#94A3B8;margin-left:8px">Powered by 1-Year Live Market Data</span></h1>
+              <p class="panel-desc">Real volatility, beta vs NIFTY 50, VaR, Max Drawdown, Sortino, correlation matrix — computed from actual daily price history.</p>
+            </div>
+            <div id="rsk-source" style="font-size:11px;color:#94A3B8;align-self:flex-start;padding-top:4px"></div>
+          </div>
+
+          <!-- Stock picker -->
+          <div class="card">
+            <div class="card__header">
+              <h2 class="card__title">Select Stocks <span id="rsk-selcount" style="font-size:11px;color:#94A3B8;font-weight:500;margin-left:6px">(0 selected)</span></h2>
+              <button id="rsk-clearBtn" class="btn-sm" type="button" hidden>Clear all</button>
+            </div>
+            <div style="padding:10px 12px">
+              <div class="rsk-chip-grid" id="rsk-chips"></div>
+            </div>
+          </div>
+
+          <!-- Budget + button -->
+          <div class="card">
+            <div class="card__header"><h2 class="card__title">Budget &amp; Settings</h2></div>
+            <div style="padding:10px 14px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="font-size:12px;font-weight:600;color:var(--text-muted);width:64px">Budget</span>
+                <span style="font-size:13px;font-weight:700;color:var(--text-muted)">₹</span>
+                <div id="rsk-bamt" class="rsk-bamt">50,000</div>
+                <input id="rsk-slider" type="range" min="10000" max="500000" step="5000" value="50000" class="budget-slider" style="flex:1;max-width:280px"/>
+                <input id="rsk-input"  type="number" value="50000" min="1000" class="field-input" style="width:110px;font-weight:700;font-variant-numeric:tabular-nums"/>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <button id="rsk-goBtn" class="btn btn--primary" type="button" style="height:42px;padding:0 28px;font-size:14px;font-weight:700;gap:8px">
+                  <span>📊</span><span>Analyse Risk</span>
+                </button>
+                <div id="rsk-status" style="font-size:12.5px;color:var(--text-muted)"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="rsk-results" hidden>
+
+            <!-- KPI strip -->
+            <div class="rsk-kpi">
+              <div class="kpi-card kpi-card--blue"><div class="kpi-label">Combos Found</div><div class="kpi-value" id="k-combos">—</div></div>
+              <div class="kpi-card kpi-card--green"><div class="kpi-label">Best Return (1Y Actual)</div><div class="kpi-value" id="k-ret">—</div></div>
+              <div class="kpi-card kpi-card--gray"><div class="kpi-label">Best Sortino</div><div class="kpi-value" id="k-sortino">—</div></div>
+              <div class="kpi-card kpi-card--purple"><div class="kpi-label">Portfolio VaR 95%</div><div class="kpi-value" id="k-var">—</div></div>
+            </div>
+
+            <!-- Risk Summary + Scatter -->
+            <div class="rsk-grid">
+
+              <!-- Left: Risk Summary -->
+              <div class="card" id="rsk-sumcard">
+                <div class="card__header">
+                  <h2 class="card__title">Best Allocation — Risk Profile</h2>
+                  <span id="rsk-badge" class="rbadge rbadge--low">🟢 Low</span>
+                </div>
+                <!-- Gauge -->
+                <div class="rsk-gw">
+                  <div class="rsk-gauge">
+                    <svg viewBox="0 0 160 88" fill="none">
+                      <path d="M 16 80 A 64 64 0 0 1 144 80" stroke="#E2E8F0" stroke-width="13" stroke-linecap="round"/>
+                      <path id="g-fill" d="M 16 80 A 64 64 0 0 1 144 80" stroke="#16A34A" stroke-width="13" stroke-linecap="round" stroke-dasharray="0 201"/>
+                    </svg>
+                    <div class="rsk-gscore" id="g-score">—</div>
+                  </div>
+                  <div class="rsk-glabel" id="g-label">—</div>
+                </div>
+
+                <!-- 6 metrics (2 rows × 3) -->
+                <div class="rsk-met6">
+                  <div class="rsk-met"><div class="rsk-met__l">Beta (NIFTY)</div><div class="rsk-met__v" id="m-beta">—</div><div class="rsk-met__s">real OLS β</div></div>
+                  <div class="rsk-met"><div class="rsk-met__l">Volatility</div><div class="rsk-met__v" id="m-vol">—</div><div class="rsk-met__s">annualised σ</div></div>
+                  <div class="rsk-met"><div class="rsk-met__l">1Y Return</div><div class="rsk-met__v" id="m-ret">—</div><div class="rsk-met__s">actual</div></div>
+                  <div class="rsk-met"><div class="rsk-met__l">Max Drawdown</div><div class="rsk-met__v" id="m-mdd">—</div><div class="rsk-met__s">worst peak→trough</div></div>
+                  <div class="rsk-met"><div class="rsk-met__l">VaR 95%</div><div class="rsk-met__v" id="m-var">—</div><div class="rsk-met__s">worst daily 5%</div></div>
+                  <div class="rsk-met"><div class="rsk-met__l">Sortino</div><div class="rsk-met__v" id="m-sortino">—</div><div class="rsk-met__s">return/downside σ</div></div>
+                </div>
+
+                <!-- Sector bars -->
+                <div style="padding:5px 12px 2px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94A3B8">Sector Exposure</div>
+                <div class="rsk-secbars" id="rsk-secs"></div>
+
+                <!-- Alerts -->
+                <div style="padding:5px 12px 2px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94A3B8">Risk Alerts</div>
+                <div class="rsk-alerts" id="rsk-alerts"></div>
+              </div>
+
+              <!-- Right: Scatter chart -->
+              <div class="card">
+                <div class="card__header">
+                  <h2 class="card__title">Risk vs Return — All Allocations</h2>
+                  <span style="font-size:11px;color:var(--text-faint)">Hover dots · Click rows below</span>
+                </div>
+                <div class="scatter-wrap">
+                  <canvas id="rsk-scatter" class="scatter-c" width="600" height="380"></canvas>
+                  <div class="scatter-tt" id="rsk-tt"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Historical Performance vs NIFTY (full width) -->
+            <div class="card">
+              <div class="card__header">
+                <h2 class="card__title">📈 Historical Performance vs NIFTY 50 (1 Year)</h2>
+                <span id="perf-meta" style="font-size:11px;color:var(--text-faint)">Best allocation cumulative return</span>
+              </div>
+              <div class="chart-legend">
+                <div class="cleg-item"><div class="cleg-line" style="background:#1B64F2"></div>Portfolio</div>
+                <div class="cleg-item"><div class="cleg-line" style="background:#94A3B8"></div>NIFTY 50</div>
+              </div>
+              <div style="padding:0 12px 12px">
+                <canvas id="rsk-perf" class="chart-c" height="220"></canvas>
+              </div>
+            </div>
+
+            <!-- Correlation matrix + advanced stats (side by side) -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+
+              <!-- Correlation heatmap -->
+              <div class="card">
+                <div class="card__header">
+                  <h2 class="card__title">🔗 Correlation Matrix</h2>
+                  <span style="font-size:11px;color:var(--text-faint)">Daily returns • 1 year</span>
+                </div>
+                <div class="corr-wrap">
+                  <canvas id="rsk-corr" class="corr-c"></canvas>
+                </div>
+                <div style="padding:0 12px 10px;font-size:11px;color:#64748B">
+                  🟩 &lt;0 = negative correlation (good diversification) &nbsp;|&nbsp; 🟥 &gt;0.7 = high correlation (concentrated risk)
+                </div>
+              </div>
+
+              <!-- Advanced metrics table -->
+              <div class="card">
+                <div class="card__header">
+                  <h2 class="card__title">📐 Advanced Metrics — Per Stock</h2>
+                  <span style="font-size:11px;color:var(--text-faint)">From 1-year daily data</span>
+                </div>
+                <div style="overflow-x:auto">
+                  <table class="rsk-tbl" id="rsk-stock-tbl">
+                    <thead>
+                      <tr>
+                        <th>Stock</th>
+                        <th>β Beta</th>
+                        <th>α Alpha</th>
+                        <th>Vol</th>
+                        <th>Max DD</th>
+                        <th>Sortino</th>
+                        <th>VaR 95%</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rsk-stock-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- All allocations table -->
+            <div class="card">
+              <div class="card__header">
+                <h2 class="card__title">All Valid Allocations</h2>
+                <span id="rsk-tmeta" style="font-size:12px;color:var(--text-faint)"></span>
+              </div>
+              <div style="overflow-x:auto">
+                <table class="rsk-tbl" id="rsk-alloc-tbl">
+                  <thead>
+                    <tr>
+                      <th style="width:32px">#</th>
+                      <th>Allocation</th>
+                      <th class="sorted" data-sort="risk">Risk Score ▲</th>
+                      <th data-sort="ret">1Y Return ↕</th>
+                      <th data-sort="vol">Volatility ↕</th>
+                      <th data-sort="mdd">Max DD ↕</th>
+                      <th data-sort="var">VaR 95% ↕</th>
+                      <th data-sort="sortino">Sortino ↕</th>
+                      <th>Level</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rsk-abody"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div><!-- /results -->
+
+          <!-- Empty state -->
+          <div class="empty-state" id="rsk-empty">
+            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <h3 class="empty-state__title">Professional Risk Analysis</h3>
+            <p class="empty-state__desc">Select 2–5 NSE stocks and set a budget.<br/>We'll fetch 1 year of real daily prices to compute <strong>true volatility, beta, VaR, drawdown &amp; correlation</strong>.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../components/layout.js"></script>
+<script src="../lib/format.js"></script>
+<script src="../engine/stats.js"></script>
+<script src="../engine/risk-analyzer.js"></script>
+<script src="../pages/risk.js"></script>
+<script>
+  Layout.init({ page: 'risk', breadcrumb: 'Risk Analysis' });
+  document.addEventListener('DOMContentLoaded', RiskPage.init);
+</script>
+</body>
+</html>
