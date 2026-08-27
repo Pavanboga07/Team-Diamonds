@@ -7,7 +7,7 @@ const { authenticate } = require('../middleware/authenticate');
 
 function createUserDataRouter() {
   const router = express.Router();
-  router.use(authenticate); // all routes below require a valid token
+  router.use('/user', authenticate); // user routes require a valid token
 
   /* ── Watchlist ──────────────────────────────────────────── */
 

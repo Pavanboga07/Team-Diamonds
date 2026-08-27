@@ -36,6 +36,7 @@ function solveEquation(equation, constraintsRaw, options) {
       const constraintsJson = JSON.stringify(constraintsRaw ?? {});
       const result = wasmSolve(equation, constraintsJson, maxResults);
       if (result.startsWith('[')) return JSON.parse(result);
+      if (result.startsWith('Error:')) return `Invalid equation: ${result.slice(6).trim()}`;
       return result;
     } catch (err) {
       console.warn('[engine] WASM solve failed, falling back to JS engine:', err.message);

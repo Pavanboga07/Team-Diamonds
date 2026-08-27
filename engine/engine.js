@@ -199,7 +199,7 @@ function solveEquation(equation, constraintsRaw, options) {
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return `Error: ${msg}`;
+    return `Invalid equation: ${msg}`;
   }
 }
 

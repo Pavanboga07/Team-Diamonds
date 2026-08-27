@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "npm run test:engine",
-    "test:engine": "node engine/tokenizer.test.js && node engine/parser.test.js && node engine/normalizer.test.js && node engine/constraints.test.js && node engine/solver.test.js && node engine/engine.test.js",
+    "test:engine": "node scripts/smoke-test.js",
+    "bench": "node scripts/bench.js",
     "smoke:api": "node scripts/api-smoke.js"
   },
   "dependencies": {

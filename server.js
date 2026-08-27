@@ -7,6 +7,8 @@ const { requestLogging }          = require('./src/middleware/requestLogging');
 const { createSolveRouter }       = require('./src/routes/solve');
 const { createMarketRouter }      = require('./src/routes/market');
 const { createIndiaMarketRouter } = require('./src/routes/india-market');
+const { createAuthRouter }         = require('./src/routes/auth');
+const { createUserDataRouter }     = require('./src/routes/user-data');
 const { createRiskRouter }        = require('./src/routes/risk');
 const { createHistoryRouter }     = require('./src/routes/history');
 const { solveEquation, solveSystem } = require('./engine');   // WASM shim (falls back to JS)
@@ -18,8 +20,8 @@ function createApp() {
 
   app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-Request-Id'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
     exposedHeaders: ['X-Request-Id'],
   }));
 
@@ -33,6 +35,8 @@ function createApp() {
   app.use(express.static(path.join(__dirname), { index: false }));
 
   // API routes
+  app.use(createAuthRouter());
+  app.use(createUserDataRouter());
   app.use(createIndiaMarketRouter());
   app.use(createRiskRouter());
   app.use(createHistoryRouter());
